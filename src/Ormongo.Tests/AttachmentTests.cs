@@ -1,4 +1,3 @@
-using System.IO;
 using System.Linq;
 using MongoDB.Bson;
 using NUnit.Framework;
@@ -21,14 +20,7 @@ namespace Ormongo.Tests
 
 		private static Attachment CreateAttachment()
 		{
-			var fileInfo = new FileInfo("Files/Koala.jpg");
-			Attachment file;
-			using (Stream stream = fileInfo.OpenRead())
-			{
-				file = new Attachment(stream, fileInfo.Name, "image/jpg");
-				file.Save();
-			}
-			return file;
+			return Attachment.Create("Files/Koala.jpg", "image/jpg");
 		}
 
 		[Test]

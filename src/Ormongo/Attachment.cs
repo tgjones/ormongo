@@ -49,7 +49,7 @@ namespace Ormongo
 			set { _contentType = value; }
 		}
 
-		public Attachment(Stream content, string fileName, string contentType)
+		private Attachment(Stream content, string fileName, string contentType)
 		{
 			Content = content;
 			FileName = fileName;
@@ -57,7 +57,7 @@ namespace Ormongo
 			IsLoaded = true;
 		}
 
-		internal Attachment(ObjectId id, MongoGridFSFileInfo fileInfo)
+		private Attachment(ObjectId id, MongoGridFSFileInfo fileInfo)
 		{
 			ID = id;
 			Load(fileInfo);
@@ -67,6 +67,24 @@ namespace Ormongo
 		{
 			ID = id;
 			IsLoaded = false;
+		}
+
+		public static Attachment Create(Stream content, string fileName, string contentType)
+		{
+			var result = new Attachment(content, fileName, contentType);
+			result.Save();
+			return result;
+		}
+
+		public static Attachment Create(string fileName, string contentType)
+		{
+			FileInfo fileInfo = new FileInfo(fileName);
+			using (var stream = fileInfo.OpenRead())
+			{
+				var result = new Attachment(stream, fileInfo.Name, contentType);
+				result.Save();
+				return result;
+			}
 		}
 
 		private void Load()
