@@ -52,10 +52,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attachment.cs" />
     <Compile Include="Document.cs" />
+    <Compile Include="DocumentSavingEventArgs.cs" />
     <Compile Include="EmbeddedDocument.cs" />
+    <Compile Include="Internal\DocumentClassMap.cs" />
     <Compile Include="Internal\ExpressionUtility.cs" />
     <Compile Include="OrmongoConfiguration.cs" />
+    <Compile Include="Plugins\AttachmentPlugin.cs" />
+    <Compile Include="Plugins\IPlugin.cs" />
+    <Compile Include="Plugins\PluginManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />

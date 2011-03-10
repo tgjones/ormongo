@@ -7,12 +7,12 @@ using Ormongo.Tests.DataClasses;
 namespace Ormongo.Tests
 {
 	[TestFixture]
-	public class BlogPostTests
+	public class DocumentTests
 	{
 		[TearDown]
 		public void TearDown()
 		{
-			BlogPost.DeleteAll();
+			BlogPost.Drop();
 		}
 
 		private static BlogPost CreateBlogPost()
@@ -145,6 +145,32 @@ namespace Ormongo.Tests
 
 			// Assert.
 			Assert.That(BlogPost.FindAll().Count(), Is.EqualTo(1));
+		}
+
+		[Test]
+		public void CanEnsureIndexOnSingleKey()
+		{
+			// Arrange.
+			OrmongoConfiguration.AutoCreateIndexes = true;
+
+			// Act.
+			BlogPost.EnsureIndex(bp => bp.Text);
+
+			// Assert.
+			Assert.That(BlogPost.GetCollection().IndexExistsByName("Text_1"), Is.True);
+		}
+
+		[Test]
+		public void CanEnsureIndexOnMultipleKeys()
+		{
+			// Arrange.
+			OrmongoConfiguration.AutoCreateIndexes = true;
+
+			// Act.
+			BlogPost.EnsureIndex(bp => bp.Text, bp => bp.Title);
+
+			// Assert.
+			Assert.That(BlogPost.GetCollection().IndexExistsByName("Text_1_Title_1"), Is.True);
 		}
 	}
 }

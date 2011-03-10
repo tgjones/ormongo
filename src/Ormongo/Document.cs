@@ -8,15 +8,33 @@ using MongoDB.Bson.DefaultSerializer;
 using MongoDB.Driver;
 using MongoDB.Driver.Builders;
 using Ormongo.Internal;
+using Ormongo.Plugins;
 
 namespace Ormongo
 {
 	public class Document<T>
+		where T : Document<T>
 	{
+		public static EventHandler<DocumentSavingEventArgs<T>> Saving;
+
+		static Document()
+		{
+			// Initialize plugins.
+			PluginManager.Execute(p => p.Initialize());
+
+			// Start by auto-mapping members.
+			Type type = typeof (T);
+			var classMap = new DocumentClassMap(type);
+			classMap.AutoMap();
+
+			// Tell Mongo about this.
+			BsonClassMap.RegisterClassMap(classMap);
+		}
+
 		[BsonId]
 		public ObjectId ID { get; set; }
 
-		private static MongoCollection<T> GetCollection()
+		internal static MongoCollection<T> GetCollection()
 		{
 			string collectionName = typeof (T).Name;
 			return OrmongoConfiguration.GetMongoDatabase().GetCollection<T>(collectionName);
@@ -37,9 +55,22 @@ namespace Ormongo
 			GetCollection().RemoveAll();
 		}
 
+		public static void Drop()
+		{
+			try
+			{
+				GetCollection().Drop();
+			}
+			catch (MongoCommandException ex)
+			{
+				if (!ex.CommandResult.ErrorMessage.Contains("ns not found"))
+					throw;
+			}
+		}
+
 		public static T FindByID(ObjectId id)
 		{
-			return GetCollection().FindOne(GetIDQuery(id));
+			return GetCollection().FindOneById(id);
 		}
 
 		public static IQueryable<T> Find(Expression<Func<T, bool>> predicate)
@@ -60,7 +91,22 @@ namespace Ormongo
 
 		public void Save()
 		{
+			if (Saving != null)
+				Saving(this, new DocumentSavingEventArgs<T>((T) this));
+
 			GetCollection().Save(this);
 		}
+
+		#region Indexing methods
+
+		public static void EnsureIndex<TProperty>(params Expression<Func<T, TProperty>>[] expression)
+		{
+			IMongoIndexKeys indexKeys = IndexKeys.Ascending(expression
+				.Select(ExpressionUtility.GetPropertyName)
+				.ToArray());
+			GetCollection().EnsureIndex(indexKeys);
+		}
+
+		#endregion
 	}
 }

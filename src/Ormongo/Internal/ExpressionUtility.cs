@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -7,7 +6,7 @@ namespace Ormongo.Internal
 {
 	internal static class ExpressionUtility
 	{
-		public static string GetPropertyName<T, TProperty>(Expression<Func<T, List<TProperty>>> expression)
+		public static string GetPropertyName<T, TProperty>(Expression<Func<T, TProperty>> expression)
 		{
 			var member = expression.Body as MemberExpression;
 			if (member == null)

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using NUnit.Framework;
 using Ormongo.Internal;
 
@@ -10,11 +9,11 @@ namespace Ormongo.Tests.Internal
 	{
 		private class TestClass
 		{
-			public List<string> MyField;
+			public string MyField;
 
-			public List<string> MyProp { get; set; }
+			public string MyProp { get; set; }
 
-			public List<string> MyMethod()
+			public string MyMethod()
 			{
 				return null;
 			}
