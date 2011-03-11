@@ -6,9 +6,9 @@ using MongoDB.Bson.Serialization;
 
 namespace Ormongo.Plugins
 {
-	public class AttachmentPlugin : IPlugin
+	public class AttachmentPlugin : PluginBase
 	{
-		public void Initialize()
+		public override void Initialize()
 		{
 			BsonSerializer.RegisterSerializer(typeof (Attachment), new AttachmentSerializer());
 		}

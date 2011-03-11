@@ -94,6 +94,8 @@ namespace Ormongo
 			if (Saving != null)
 				Saving(this, new DocumentSavingEventArgs<T>((T) this));
 
+			PluginManager.Execute(p => p.BeforeSave(this));
+
 			GetCollection().Save(this);
 		}
 
