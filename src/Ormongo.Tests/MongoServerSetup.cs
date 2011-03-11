@@ -17,7 +17,7 @@ namespace Ormongo.Tests
 
 			Directory.CreateDirectory("data");
 
-			_process = Process.Start(new ProcessStartInfo(@"..\..\..\..\tools\mongodb\bin\mongod",
+			_process = Process.Start(new ProcessStartInfo(@"..\..\..\..\tools\mongodb\binaries\mongod",
 				"--dbpath \"data\" --port 28000"));
 		}
 
