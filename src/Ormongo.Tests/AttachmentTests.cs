@@ -1,7 +1,7 @@
+using System.IO;
 using System.Linq;
 using MongoDB.Bson;
 using NUnit.Framework;
-using Ormongo.Tests.DataClasses;
 
 namespace Ormongo.Tests
 {
@@ -24,6 +24,35 @@ namespace Ormongo.Tests
 		}
 
 		[Test]
+		public void CanDeleteAttachment()
+		{
+			// Arrange.
+			Attachment file = CreateAttachment();
+			Assert.That(Attachment.FindAll().Count(), Is.EqualTo(1));
+
+			// Act.
+			Attachment.Delete(file.ID);
+
+			// Assert.
+			Assert.That(Attachment.FindAll().Count(), Is.EqualTo(0));
+		}
+
+		[Test]
+		public void CanCreateAttachmentFromStream()
+		{
+			Assert.That(Attachment.FindAll().Count(), Is.EqualTo(0));
+
+			// Act.
+			Attachment file;
+			using (FileStream stream = File.OpenRead("Files/Koala.jpg"))
+				file = Attachment.Create(stream, "Files/Koala.jpg", "image/jpg");
+
+			// Assert.
+			Assert.That(file.ID, Is.Not.EqualTo(ObjectId.Empty));
+			Assert.That(Attachment.FindAll().Count(), Is.EqualTo(1));
+		}
+
+		[Test]
 		public void CanSaveAttachment()
 		{
 			// Act.
@@ -36,6 +65,25 @@ namespace Ormongo.Tests
 		}
 
 		[Test]
+		public void CanSaveExistingAttachment()
+		{
+			// Arrange.
+			using (FileStream stream = File.OpenRead("Files/Koala.jpg"))
+			{
+				Attachment file = Attachment.Create(stream, "Files/Koala.jpg", "image/jpg");
+				ObjectId id = file.ID;
+
+				// Act.
+				file.FileName = "newfilename.jpg";
+				file.Save();
+
+				// Assert.
+				Assert.That(file.ID, Is.EqualTo(id));
+				Assert.That(Attachment.FindAll().Count(), Is.EqualTo(1));
+			}
+		}
+
+		[Test]
 		public void CanSaveAttachmentsWithDuplicateFileNames()
 		{
 			// Act.
@@ -45,15 +93,15 @@ namespace Ormongo.Tests
 
 			// Assert.
 			Assert.That(Attachment.FindAll().Count(), Is.EqualTo(2));
-			Assert.That(Attachment.FindByID(file1.ID), Is.Not.Null);
-			Assert.That(Attachment.FindByID(file2.ID), Is.Not.Null);
+			Assert.That(Attachment.FindOneByID(file1.ID), Is.Not.Null);
+			Assert.That(Attachment.FindOneByID(file2.ID), Is.Not.Null);
 		}
 
 		[Test]
 		public void FindByIDReturnsNullForInvalidID()
 		{
 			// Assert.
-			Assert.That(Attachment.FindByID(ObjectId.GenerateNewId()), Is.Null);
+			Assert.That(Attachment.FindOneByID(ObjectId.GenerateNewId()), Is.Null);
 		}
 
 		[Test]
@@ -72,6 +120,24 @@ namespace Ormongo.Tests
 		}
 
 		[Test]
+		public void CanLoadAndReadAsset()
+		{
+			using (FileStream stream = File.OpenRead("Files/Koala.jpg"))
+			{
+				// Arrange.
+				Attachment file = Attachment.Create(stream, "Files/Koala.jpg", "image/jpg");
+				long contentLength = stream.Length;
+
+				// Act.
+				Attachment myFile = Attachment.FindOneByID(file.ID);
+				long myContentLength = myFile.Content.Length;
+
+				// Assert.
+				Assert.That(myContentLength, Is.EqualTo(contentLength));
+			}
+		}
+
+		[Test]
 		public void AssetAttachmentIsNotLoadedIfNotUsed()
 		{
 			// Arrange.
@@ -80,14 +146,14 @@ namespace Ormongo.Tests
 			asset.Save();
 
 			// Act.
-			Asset theAsset = Asset.FindByID(asset.ID);
+			Asset theAsset = Asset.FindOneByID(asset.ID);
 
 			// Assert.
 			Assert.That(theAsset.File.IsLoaded, Is.False);
 		}
 
 		[Test]
-		public void AssetAttachmentIsLoadedIfUsed()
+		public void AssetAttachmentIsLoadedIfFileNameIsUsed()
 		{
 			// Arrange.
 			Attachment file = CreateAttachment();
@@ -95,7 +161,7 @@ namespace Ormongo.Tests
 			asset.Save();
 
 			// Act.
-			Asset theAsset = Asset.FindByID(asset.ID);
+			Asset theAsset = Asset.FindOneByID(asset.ID);
 			string fileName = theAsset.File.FileName;
 
 			// Assert.
@@ -103,6 +169,44 @@ namespace Ormongo.Tests
 			Assert.That(theAsset.File.IsLoaded, Is.True);
 			Assert.That(theAsset.File.ContentType, Is.EqualTo("image/jpg"));
 			Assert.That(theAsset.File.Content, Is.Not.Null);
+		}
+
+		[Test]
+		public void AssetAttachmentIsLoadedIfContentTypeIsUsed()
+		{
+			// Arrange.
+			Attachment file = CreateAttachment();
+			Asset asset = new Asset { Title = "The Title", File = file };
+			asset.Save();
+
+			// Act.
+			Asset theAsset = Asset.FindOneByID(asset.ID);
+			string contentType = theAsset.File.ContentType;
+
+			// Assert.
+			Assert.That(contentType, Is.EqualTo("image/jpg"));
+			Assert.That(theAsset.File.IsLoaded, Is.True);
+			Assert.That(theAsset.File.FileName, Is.EqualTo("Koala.jpg"));
+			Assert.That(theAsset.File.Content, Is.Not.Null);
+		}
+
+		[Test]
+		public void AssetAttachmentIsLoadedIfContentIsUsed()
+		{
+			// Arrange.
+			Attachment file = CreateAttachment();
+			Asset asset = new Asset { Title = "The Title", File = file };
+			asset.Save();
+
+			// Act.
+			Asset theAsset = Asset.FindOneByID(asset.ID);
+			Stream content = theAsset.File.Content;
+
+			// Assert.
+			Assert.That(content, Is.Not.Null);
+			Assert.That(theAsset.File.IsLoaded, Is.True);
+			Assert.That(theAsset.File.FileName, Is.EqualTo("Koala.jpg"));
+			Assert.That(theAsset.File.ContentType, Is.EqualTo("image/jpg"));
 		}
 	}
 }

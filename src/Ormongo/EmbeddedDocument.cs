@@ -1,10 +1,18 @@
 using MongoDB.Bson;
+using MongoDB.Bson.DefaultSerializer;
 
 namespace Ormongo
 {
-	// TODO: Should know how to access its parent document.
-	public class EmbeddedDocument
+	public abstract class EmbeddedDocument<TEmbeddedIn>
+		where TEmbeddedIn : Document<TEmbeddedIn>
 	{
 		public ObjectId ID { get; set; }
+
+		[BsonIgnore]
+		public TEmbeddedIn Parent
+		{
+			get;
+			set;
+		}
 	}
 }

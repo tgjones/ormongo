@@ -51,9 +51,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssociationTests.cs" />
     <Compile Include="AttachmentTests.cs" />
-    <Compile Include="DataClasses\Asset.cs" />
-    <Compile Include="DataClasses\BlogPost.cs" />
+    <Compile Include="Internal\ReflectionUtilityTests.cs" />
+    <Compile Include="TestEntities.cs" />
+    <Compile Include="Internal\AssociationUtilityTests.cs" />
     <Compile Include="Internal\ExpressionUtilityTests.cs" />
     <Compile Include="MongoServerSetup.cs" />
     <Compile Include="Plugins\PluginManagerTests.cs" />

@@ -5,9 +5,11 @@ using System.Linq.Expressions;
 using FluentMongo.Linq;
 using MongoDB.Bson;
 using MongoDB.Bson.DefaultSerializer;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using MongoDB.Driver.Builders;
 using Ormongo.Internal;
+using Ormongo.Internal.Serialization;
 using Ormongo.Plugins;
 
 namespace Ormongo
@@ -15,20 +17,13 @@ namespace Ormongo
 	public class Document<T>
 		where T : Document<T>
 	{
-		public static EventHandler<DocumentSavingEventArgs<T>> Saving;
-
 		static Document()
 		{
+			// Register custom serialization provider.
+			BsonSerializer.RegisterSerializationProvider(new SerializationProvider());
+
 			// Initialize plugins.
 			PluginManager.Execute(p => p.Initialize());
-
-			// Start by auto-mapping members.
-			Type type = typeof (T);
-			var classMap = new DocumentClassMap(type);
-			classMap.AutoMap();
-
-			// Tell Mongo about this.
-			BsonClassMap.RegisterClassMap(classMap);
 		}
 
 		[BsonId]
@@ -45,15 +40,7 @@ namespace Ormongo
 			return Query.EQ("_id", id);
 		}
 
-		public static void Delete(ObjectId id)
-		{
-			GetCollection().Remove(GetIDQuery(id));
-		}
-
-		public static void DeleteAll()
-		{
-			GetCollection().RemoveAll();
-		}
+		#region Persistence
 
 		public static void Drop()
 		{
@@ -68,9 +55,24 @@ namespace Ormongo
 			}
 		}
 
-		public static T FindByID(ObjectId id)
+		public void Save()
+		{
+			PluginManager.Execute(p => p.BeforeSave(this));
+			GetCollection().Save(this);
+		}
+
+		#endregion
+
+		#region Querying
+
+		public static T FindOneByID(ObjectId id)
 		{
 			return GetCollection().FindOneById(id);
+		}
+
+		public static T FindOne(Expression<Func<T, bool>> predicate)
+		{
+			return FindAll().Single(predicate);
 		}
 
 		public static IQueryable<T> Find(Expression<Func<T, bool>> predicate)
@@ -83,23 +85,29 @@ namespace Ormongo
 			return GetCollection().AsQueryable();
 		}
 
-		public static void Push<TProperty>(ObjectId id, Expression<Func<T, List<TProperty>>> expression, TProperty value)
+		#endregion
+
+		#region Persistence
+
+		public static T Create(T item)
 		{
-			UpdateBuilder update = Update.Push(ExpressionUtility.GetPropertyName(expression), BsonDocumentWrapper.Create(value));
-			GetCollection().Update(GetIDQuery(id), update);
+			item.Save();
+			return item;
 		}
 
-		public void Save()
+		public static void Delete(ObjectId id)
 		{
-			if (Saving != null)
-				Saving(this, new DocumentSavingEventArgs<T>((T) this));
-
-			PluginManager.Execute(p => p.BeforeSave(this));
-
-			GetCollection().Save(this);
+			GetCollection().Remove(GetIDQuery(id));
 		}
 
-		#region Indexing methods
+		public static void DeleteAll()
+		{
+			GetCollection().RemoveAll();
+		}
+
+		#endregion
+
+		#region Indexing
 
 		public static void EnsureIndex<TProperty>(params Expression<Func<T, TProperty>>[] expression)
 		{
@@ -107,6 +115,36 @@ namespace Ormongo
 				.Select(ExpressionUtility.GetPropertyName)
 				.ToArray());
 			GetCollection().EnsureIndex(indexKeys);
+		}
+
+		#endregion
+
+		#region Atomic
+
+		public static void Push<TProperty>(ObjectId id, Expression<Func<T, List<TProperty>>> expression, TProperty value)
+		{
+			UpdateBuilder update = Update.PushWrapped(ExpressionUtility.GetPropertyName(expression), value);
+			GetCollection().Update(GetIDQuery(id), update);
+		}
+
+		public static void Pull<TProperty>(ObjectId id, Expression<Func<T, List<TProperty>>> expression, Expression<Func<TProperty, bool>> match)
+		{
+			string propertyName;
+			object value;
+			ExpressionUtility.GetPropertyNameAndValue(match, out propertyName, out value);
+
+			UpdateBuilder update = Update.Pull(ExpressionUtility.GetPropertyName(expression),
+				Query.EQ(propertyName, BsonValue.Create(value)));
+			GetCollection().Update(GetIDQuery(id), update);
+		}
+
+		#endregion
+
+		#region Associations
+
+		public void UpdateAssociations()
+		{
+			AssociationUtility.UpdateAssociations(this);
 		}
 
 		#endregion

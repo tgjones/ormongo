@@ -118,7 +118,7 @@ namespace Ormongo
 			return GetGridFS().Files.FindAll().Select(f => new Attachment(f["_id"].AsObjectId));
 		}
 
-		public static Attachment FindByID(ObjectId id)
+		public static Attachment FindOneByID(ObjectId id)
 		{
 			var file = GetGridFS().FindOneById(id);
 			return (file != null) ? new Attachment(id, file) : null;

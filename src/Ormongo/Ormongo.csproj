@@ -55,12 +55,16 @@
   <ItemGroup>
     <Compile Include="Attachment.cs" />
     <Compile Include="Document.cs" />
-    <Compile Include="DocumentSavingEventArgs.cs" />
     <Compile Include="EmbeddedDocument.cs" />
-    <Compile Include="Internal\DocumentClassMap.cs" />
+    <Compile Include="Internal\AssociationUtility.cs" />
+    <Compile Include="Internal\ReflectionUtility.cs" />
+    <Compile Include="Internal\Serialization\AttachmentSerializer.cs" />
     <Compile Include="Internal\ExpressionUtility.cs" />
+    <Compile Include="Internal\Serialization\EmbeddedDocumentSerializer.cs" />
+    <Compile Include="Internal\Serialization\DocumentSerializer.cs" />
+    <Compile Include="Internal\Serialization\SerializationProvider.cs" />
     <Compile Include="OrmongoConfiguration.cs" />
-    <Compile Include="Plugins\AttachmentPlugin.cs" />
+    <Compile Include="Plugins\AssociationPlugin.cs" />
     <Compile Include="Plugins\IPlugin.cs" />
     <Compile Include="Plugins\PluginBase.cs" />
     <Compile Include="Plugins\PluginManager.cs" />

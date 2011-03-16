@@ -13,8 +13,9 @@ namespace Ormongo.Tests.Plugins
 			var plugins = PluginManager.FindPlugins();
 
 			// Assert.
-			Assert.That(plugins.Count, Is.EqualTo(1));
-			Assert.That(plugins[0], Is.TypeOf<AttachmentPlugin>());
+			Assert.That(plugins, Has.Count.EqualTo(2));
+			Assert.That(plugins, Has.Some.InstanceOf<AssociationPlugin>());
+			Assert.That(plugins, Has.Some.InstanceOf<ValidationPlugin>());
 		}
 	}
 }
