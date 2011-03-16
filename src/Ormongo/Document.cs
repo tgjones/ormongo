@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Expressions;
 using FluentMongo.Linq;
@@ -17,6 +18,8 @@ namespace Ormongo
 	public class Document<T>
 		where T : Document<T>
 	{
+		public static EventHandler<DocumentSavingEventArgs<T>> Saving;
+
 		static Document()
 		{
 			// Register custom serialization provider.
@@ -26,7 +29,7 @@ namespace Ormongo
 			PluginManager.Execute(p => p.Initialize());
 		}
 
-		[BsonId]
+		[BsonId, ScaffoldColumn(false)]
 		public ObjectId ID { get; set; }
 
 		internal static MongoCollection<T> GetCollection()
@@ -55,8 +58,15 @@ namespace Ormongo
 			}
 		}
 
+		private static void OnSaving(object sender, DocumentSavingEventArgs<T> args)
+		{
+			if (Saving != null)
+				Saving(sender, args);
+		}
+
 		public void Save()
 		{
+			OnSaving(this, new DocumentSavingEventArgs<T>((T) this));
 			PluginManager.Execute(p => p.BeforeSave(this));
 			GetCollection().Save(this);
 		}
