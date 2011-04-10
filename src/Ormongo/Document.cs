@@ -5,8 +5,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using FluentMongo.Linq;
 using MongoDB.Bson;
-using MongoDB.Bson.DefaultSerializer;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using MongoDB.Driver.Builders;
 using Ormongo.Internal;
@@ -18,7 +18,8 @@ namespace Ormongo
 	public class Document<T>
 		where T : Document<T>
 	{
-		public static EventHandler<DocumentSavingEventArgs<T>> Saving;
+		public static EventHandler<DocumentEventArgs<T>> Saving;
+		public static EventHandler<DocumentEventArgs<T>> Saved;
 
 		static Document()
 		{
@@ -58,17 +59,24 @@ namespace Ormongo
 			}
 		}
 
-		private static void OnSaving(object sender, DocumentSavingEventArgs<T> args)
+		protected virtual void OnSaving(object sender, DocumentEventArgs<T> args)
 		{
 			if (Saving != null)
 				Saving(sender, args);
 		}
 
+		protected virtual void OnSaved(object sender, DocumentEventArgs<T> args)
+		{
+			if (Saved != null)
+				Saved(sender, args);
+		}
+
 		public void Save()
 		{
-			OnSaving(this, new DocumentSavingEventArgs<T>((T) this));
+			OnSaving(this, new DocumentEventArgs<T>((T) this));
 			PluginManager.Execute(p => p.BeforeSave(this));
 			GetCollection().Save(this);
+			OnSaved(this, new DocumentEventArgs<T>((T) this));
 		}
 
 		#endregion
@@ -82,7 +90,7 @@ namespace Ormongo
 
 		public static T FindOne(Expression<Func<T, bool>> predicate)
 		{
-			return FindAll().Single(predicate);
+			return FindAll().SingleOrDefault(predicate);
 		}
 
 		public static IQueryable<T> Find(Expression<Func<T, bool>> predicate)
@@ -93,6 +101,15 @@ namespace Ormongo
 		public static IQueryable<T> FindAll()
 		{
 			return GetCollection().AsQueryable();
+		}
+
+		public static IEnumerable<T> FindNear<TProperty>(Expression<Func<T, TProperty>> expression,
+			double x, double y, double maxDistance, int limit)
+		{
+			var query = Query.Near(ExpressionUtility.GetPropertyName(expression), x, y, maxDistance);
+			var cursor = GetCollection().Find(query);
+			cursor.Limit = limit;
+			return cursor;
 		}
 
 		#endregion
@@ -119,11 +136,37 @@ namespace Ormongo
 
 		#region Indexing
 
-		public static void EnsureIndex<TProperty>(params Expression<Func<T, TProperty>>[] expression)
+		public static void EnsureIndex<TProperty>(Expression<Func<T, TProperty>> expression)
 		{
-			IMongoIndexKeys indexKeys = IndexKeys.Ascending(expression
-				.Select(ExpressionUtility.GetPropertyName)
-				.ToArray());
+			EnsureIndex(expression, false);
+		}
+
+		public static void EnsureIndex<TProperty>(Expression<Func<T, TProperty>> expression, bool unique)
+		{
+			IMongoIndexKeys indexKeys = IndexKeys.Ascending(ExpressionUtility.GetPropertyName(expression));
+			EnsureIndexInternal(indexKeys, unique);
+		}
+
+		public static void EnsureIndex<TProperty1, TProperty2>(Expression<Func<T, TProperty1>> expression1, Expression<Func<T, TProperty2>> expression2)
+		{
+			EnsureIndex(expression1, expression2, false);
+		}
+
+		public static void EnsureIndex<TProperty1, TProperty2>(Expression<Func<T, TProperty1>> expression1, Expression<Func<T, TProperty2>> expression2, bool unique)
+		{
+			IMongoIndexKeys indexKeys = IndexKeys.Ascending(ExpressionUtility.GetPropertyName(expression1), ExpressionUtility.GetPropertyName(expression2));
+			EnsureIndexInternal(indexKeys, unique);
+		}
+
+		private static void EnsureIndexInternal(IMongoIndexKeys indexKeys, bool unique)
+		{
+			GetCollection().EnsureIndex(indexKeys, IndexOptions.SetUnique(unique));
+		}
+
+
+		public static void EnsureGeoSpatialIndex<TProperty>(Expression<Func<T, TProperty>> expression)
+		{
+			var indexKeys = IndexKeys.GeoSpatial(ExpressionUtility.GetPropertyName(expression));
 			GetCollection().EnsureIndex(indexKeys);
 		}
 

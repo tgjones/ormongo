@@ -9,6 +9,8 @@ namespace Ormongo
 {
 	public class Attachment
 	{
+		public static EventHandler<AttachmentDeletingEventArgs> Deleting;
+
 		public ObjectId ID { get; set; }
 
 		public bool IsLoaded { get; private set; }
@@ -78,7 +80,7 @@ namespace Ormongo
 
 		public static Attachment Create(string fileName, string contentType)
 		{
-			FileInfo fileInfo = new FileInfo(fileName);
+			var fileInfo = new FileInfo(fileName);
 			using (var stream = fileInfo.OpenRead())
 			{
 				var result = new Attachment(stream, fileInfo.Name, contentType);
@@ -110,7 +112,14 @@ namespace Ormongo
 
 		public static void Delete(ObjectId id)
 		{
+			OnDeleting(new AttachmentDeletingEventArgs(id));
 			GetGridFS().DeleteById(id);
+		}
+
+		public static void DeleteAll()
+		{
+			GetGridFS().Chunks.RemoveAll();
+			GetGridFS().Files.RemoveAll();
 		}
 
 		public static IEnumerable<Attachment> FindAll()
@@ -141,5 +150,15 @@ namespace Ormongo
 			};
 			gridFS.Upload(Content, FileName, options);
 		}
+
+		#region Events
+
+		protected static void OnDeleting(AttachmentDeletingEventArgs args)
+		{
+			if (Deleting != null)
+				Deleting(null, args);
+		}
+
+		#endregion
 	}
 }

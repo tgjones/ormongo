@@ -103,6 +103,16 @@ namespace Ormongo.Tests
 		}
 
 		[Test]
+		public void FindOneReturnsNullIfNoMatch()
+		{
+			// Act.
+			BlogPost myPost = BlogPost.FindOne(u => u.Title == "My Blog Post");
+
+			// Assert.
+			Assert.That(myPost, Is.Null);
+		}
+
+		[Test]
 		public void CanFindBlogPostByID()
 		{
 			// Arrange.
@@ -130,6 +140,24 @@ namespace Ormongo.Tests
 
 			// Assert.
 			Assert.That(allPosts.Count(), Is.EqualTo(2));
+		}
+
+		[Test]
+		public void CanFindBlogPostsByAuthor()
+		{
+			// Arrange.
+			var authorID = ObjectId.GenerateNewId();
+			BlogPost post1 = CreateBlogPost();
+			post1.Authors = new System.Collections.Generic.List<ObjectId> { authorID };
+			post1.Save();
+			BlogPost post2 = CreateBlogPost();
+			post2.Save();
+
+			// Act.
+			var matchingPosts = BlogPost.Find(bp => bp.Authors.Any(a => a == authorID)).ToList();
+
+			// Assert.
+			Assert.That(matchingPosts.Count, Is.EqualTo(1));
 		}
 
 		[Test]
@@ -213,7 +241,7 @@ namespace Ormongo.Tests
 		}
 
 		[Test]
-		public void CanEnsureIndexOnMultipleKeys()
+		public void CanEnsureIndexOnMultipleKeysOfSameType()
 		{
 			// Arrange.
 			OrmongoConfiguration.AutoCreateIndexes = true;
@@ -223,6 +251,19 @@ namespace Ormongo.Tests
 
 			// Assert.
 			Assert.That(BlogPost.GetCollection().IndexExistsByName("Text_1_Title_1"), Is.True);
+		}
+
+		[Test]
+		public void CanEnsureIndexOnMultipleKeysOfDifferentTypes()
+		{
+			// Arrange.
+			OrmongoConfiguration.AutoCreateIndexes = true;
+
+			// Act.
+			BlogPost.EnsureIndex(bp => bp.Text, bp => bp.DatePublished);
+
+			// Assert.
+			Assert.That(BlogPost.GetCollection().IndexExistsByName("Text_1_DatePublished_1"), Is.True);
 		}
 	}
 }

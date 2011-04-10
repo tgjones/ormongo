@@ -1,7 +1,7 @@
 using System;
-using MongoDB.Bson.DefaultSerializer;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 
 namespace Ormongo.Internal.Serialization
 {

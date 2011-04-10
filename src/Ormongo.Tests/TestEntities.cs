@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MongoDB.Bson;
 
 namespace Ormongo.Tests
 {
@@ -10,6 +11,7 @@ namespace Ormongo.Tests
 		public string Text { get; set; }
 
 		public List<Comment> Comments { get; set; }
+		public List<ObjectId> Authors { get; set; }
 
 		public BlogPost()
 		{
@@ -37,7 +39,7 @@ namespace Ormongo.Tests
 		public virtual Address Address { get; set; }
 	}
 
-	public class Address : EmbeddedDocument<Person>
+	public class Address : EmbeddedDocumentWithID<Person>
 	{
 		public string Street { get; set; }
 		public string City { get; set; }

@@ -12,7 +12,8 @@ namespace Ormongo.Tests
 		[SetUp]
 		public void SetUp()
 		{
-			OrmongoConfiguration.ConnectionString = "mongodb://localhost:28000";
+			OrmongoConfiguration.ServerHost = "localhost";
+			OrmongoConfiguration.ServerPort = 28000;
 			OrmongoConfiguration.Database = "OrmongoTests";
 
 			Directory.CreateDirectory("data");

@@ -1,1 +1,0 @@
-I'd like to use the NuGet versions, but couldn't get them to work. MongoDB.Driver.dll crashed with a NullReferenceException that I couldn't debug.

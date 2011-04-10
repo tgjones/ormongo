@@ -1,9 +1,7 @@
 using System;
-using System.Reflection;
-using MongoDB.Bson;
-using MongoDB.Bson.DefaultSerializer;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 
 namespace Ormongo.Internal.Serialization
 {
@@ -25,10 +23,6 @@ namespace Ormongo.Internal.Serialization
 
 		public override void Serialize(BsonWriter bsonWriter, Type nominalType, object value, IBsonSerializationOptions options)
 		{
-			PropertyInfo idPropertyInfo = value.GetType().GetProperty("ID");
-			ObjectId id = (ObjectId) idPropertyInfo.GetValue(value, null);
-			if (id == ObjectId.Empty)
-				idPropertyInfo.SetValue(value, ObjectId.GenerateNewId(), null);
 			BsonClassMapSerializer.Instance.Serialize(bsonWriter, nominalType, value, options);
 		}
 
