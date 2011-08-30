@@ -18,6 +18,8 @@ namespace Ormongo
 	public class Document<T>
 		where T : Document<T>
 	{
+		public static EventHandler<DocumentEventArgs<T>> Created;
+		public static EventHandler<DocumentDeletingEventArgs> Deleting;
 		public static EventHandler<DocumentEventArgs<T>> Saving;
 		public static EventHandler<DocumentEventArgs<T>> Saved;
 
@@ -119,12 +121,26 @@ namespace Ormongo
 		public static T Create(T item)
 		{
 			item.Save();
+			item.OnCreated(null, new DocumentEventArgs<T>(item));
 			return item;
+		}
+
+		protected virtual void OnCreated(object sender, DocumentEventArgs<T> args)
+		{
+			if (Created != null)
+				Created(sender, args);
 		}
 
 		public static void Delete(ObjectId id)
 		{
+			OnDeleting(null, new DocumentDeletingEventArgs(id));
 			GetCollection().Remove(GetIDQuery(id));
+		}
+
+		private static void OnDeleting(object sender, DocumentDeletingEventArgs args)
+		{
+			if (Deleting != null)
+				Deleting(sender, args);
 		}
 
 		public static void DeleteAll()
