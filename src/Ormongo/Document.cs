@@ -174,6 +174,12 @@ namespace Ormongo
 			EnsureIndexInternal(indexKeys, unique);
 		}
 
+		public static void EnsureIndex<TProperty1, TProperty2, TProperty3>(Expression<Func<T, TProperty1>> expression1, Expression<Func<T, TProperty2>> expression2, Expression<Func<T, TProperty3>> expression3, bool unique)
+		{
+			IMongoIndexKeys indexKeys = IndexKeys.Ascending(ExpressionUtility.GetPropertyName(expression1), ExpressionUtility.GetPropertyName(expression2), ExpressionUtility.GetPropertyName(expression3));
+			EnsureIndexInternal(indexKeys, unique);
+		}
+
 		private static void EnsureIndexInternal(IMongoIndexKeys indexKeys, bool unique)
 		{
 			GetCollection().EnsureIndex(indexKeys, IndexOptions.SetUnique(unique));
