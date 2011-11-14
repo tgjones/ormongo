@@ -27,5 +27,10 @@ namespace Ormongo
 				.Create(connectionStringBuilder.ToServerSettings())
 				.GetDatabase(Database);
 		}
+
+		public static void CloseConnection()
+		{
+			GetMongoDatabase().Server.Disconnect();
+		}
 	}
 }
