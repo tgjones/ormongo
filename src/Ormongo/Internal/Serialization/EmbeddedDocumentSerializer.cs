@@ -26,7 +26,7 @@ namespace Ormongo.Internal.Serialization
 			BsonClassMapSerializer.Instance.Serialize(bsonWriter, nominalType, value, options);
 		}
 
-		public override bool GetDocumentId(object document, out object id, out IIdGenerator idGenerator)
+		public override bool GetDocumentId(object document, out object id, out Type idNominalType, out IIdGenerator idGenerator)
 		{
 			throw new NotSupportedException();
 		}

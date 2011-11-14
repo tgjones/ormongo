@@ -16,8 +16,13 @@ namespace Ormongo.Internal.Serialization
 				return null;
 			}
 
-			var id = (ObjectId)ObjectIdSerializer.Instance.Deserialize(bsonReader, nominalType, options);
+			var id = (ObjectId)ObjectIdSerializer.Instance.Deserialize(bsonReader, typeof(ObjectId), typeof(ObjectId), options);
 			return new Attachment(id);
+		}
+
+		public override object Deserialize(BsonReader bsonReader, Type nominalType, Type actualType, IBsonSerializationOptions options)
+		{
+			return Deserialize(bsonReader, nominalType, options);
 		}
 
 		public override void Serialize(BsonWriter bsonWriter, Type nominalType, object value, IBsonSerializationOptions options)
@@ -33,7 +38,7 @@ namespace Ormongo.Internal.Serialization
 			}
 		}
 
-		public override bool GetDocumentId(object document, out object id, out IIdGenerator idGenerator)
+		public override bool GetDocumentId(object document, out object id, out Type idNominalType, out IIdGenerator idGenerator)
 		{
 			throw new NotSupportedException();
 		}
