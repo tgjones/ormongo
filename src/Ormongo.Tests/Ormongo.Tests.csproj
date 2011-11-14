@@ -66,12 +66,16 @@
     <Compile Include="TestEntities.cs" />
     <Compile Include="Internal\AssociationUtilityTests.cs" />
     <Compile Include="Internal\ExpressionUtilityTests.cs" />
-    <Compile Include="MongoServerSetup.cs" />
+    <Compile Include="MongoTestServerSetup.cs" />
     <Compile Include="Plugins\PluginManagerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DocumentTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Ormongo.TestHelper\Ormongo.TestHelper.csproj">
+      <Project>{320F63C7-3326-411C-BA78-663FEFF645BA}</Project>
+      <Name>Ormongo.TestHelper</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Ormongo\Ormongo.csproj">
       <Project>{6C87182D-D784-43B0-8F31-98D43A02FDE7}</Project>
       <Name>Ormongo</Name>

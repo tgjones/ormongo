@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ormongo", "Ormongo\Ormongo.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ormongo.Tests", "Ormongo.Tests\Ormongo.Tests.csproj", "{A8E1A966-4B91-42BB-8C6B-C84A27DD3682}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ormongo.TestHelper", "Ormongo.TestHelper\Ormongo.TestHelper.csproj", "{320F63C7-3326-411C-BA78-663FEFF645BA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,16 @@ Global
 		{A8E1A966-4B91-42BB-8C6B-C84A27DD3682}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{A8E1A966-4B91-42BB-8C6B-C84A27DD3682}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{A8E1A966-4B91-42BB-8C6B-C84A27DD3682}.Release|x86.ActiveCfg = Release|Any CPU
+		{320F63C7-3326-411C-BA78-663FEFF645BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{320F63C7-3326-411C-BA78-663FEFF645BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{320F63C7-3326-411C-BA78-663FEFF645BA}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{320F63C7-3326-411C-BA78-663FEFF645BA}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{320F63C7-3326-411C-BA78-663FEFF645BA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{320F63C7-3326-411C-BA78-663FEFF645BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{320F63C7-3326-411C-BA78-663FEFF645BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{320F63C7-3326-411C-BA78-663FEFF645BA}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{320F63C7-3326-411C-BA78-663FEFF645BA}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{320F63C7-3326-411C-BA78-663FEFF645BA}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
