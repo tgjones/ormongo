@@ -63,6 +63,7 @@
     <Compile Include="AssociationTests.cs" />
     <Compile Include="AttachmentTests.cs" />
     <Compile Include="Internal\ReflectionUtilityTests.cs" />
+    <Compile Include="OrmongoConfigurationTests.cs" />
     <Compile Include="TestEntities.cs" />
     <Compile Include="Internal\AssociationUtilityTests.cs" />
     <Compile Include="Internal\ExpressionUtilityTests.cs" />

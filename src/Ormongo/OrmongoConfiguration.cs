@@ -11,7 +11,7 @@ namespace Ormongo
 
 		public static bool AutoCreateIndexes { get; set; }
 
-		internal static MongoDatabase GetMongoDatabase()
+		internal static MongoServer GetMongoServer()
 		{
 			var serverAddress = (ServerPort != 0)
 				? new MongoServerAddress(ServerHost, ServerPort)
@@ -24,13 +24,22 @@ namespace Ormongo
 					: MongoDB.Driver.SafeMode.False
 			};
 			return MongoServer
-				.Create(connectionStringBuilder.ToServerSettings())
-				.GetDatabase(Database);
+				.Create(connectionStringBuilder.ToServerSettings());
+		}
+
+		internal static MongoDatabase GetMongoDatabase()
+		{
+			return GetMongoServer().GetDatabase(Database);
 		}
 
 		public static void CloseConnection()
 		{
 			GetMongoDatabase().Server.Disconnect();
+		}
+
+		public static void DropDatabase()
+		{
+			GetMongoServer().DropDatabase(Database);
 		}
 	}
 }
