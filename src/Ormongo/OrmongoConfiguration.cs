@@ -34,7 +34,7 @@ namespace Ormongo
 
 		public static void CloseConnection()
 		{
-			GetMongoDatabase().Server.Disconnect();
+			GetMongoServer().Disconnect();
 		}
 
 		public static void DropDatabase()
