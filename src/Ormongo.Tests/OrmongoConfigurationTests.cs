@@ -27,7 +27,7 @@ namespace Ormongo.Tests
 		}
 
 		[Test]
-		public void CanDropDatabase()
+		public void CanDropAllCollections()
 		{
 			// Arrange.
 			BlogPost.Create(new BlogPost
@@ -36,13 +36,13 @@ namespace Ormongo.Tests
 				Title = "Blog post title",
 				Text = "My blog post"
 			});
-			Assert.That(OrmongoConfiguration.GetMongoServer().DatabaseExists(OrmongoConfiguration.Database), Is.True);
+			Assert.That(OrmongoConfiguration.GetMongoDatabase().CollectionExists("BlogPost"), Is.True);
 
 			// Act.
-			OrmongoConfiguration.DropDatabase();
+			OrmongoConfiguration.DropAllCollections();
 
 			// Assert.
-			Assert.That(OrmongoConfiguration.GetMongoServer().DatabaseExists(OrmongoConfiguration.Database), Is.False);
+			Assert.That(OrmongoConfiguration.GetMongoDatabase().CollectionExists("BlogPost"), Is.False);
 		}
 	}
 }

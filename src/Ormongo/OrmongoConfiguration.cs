@@ -1,3 +1,4 @@
+using System.Linq;
 using MongoDB.Driver;
 
 namespace Ormongo
@@ -37,9 +38,11 @@ namespace Ormongo
 			GetMongoServer().Disconnect();
 		}
 
-		public static void DropDatabase()
+		public static void DropAllCollections()
 		{
-			GetMongoServer().DropDatabase(Database);
+			var database = GetMongoDatabase();
+			foreach (var collectionName in database.GetCollectionNames().Where(s => !s.StartsWith("system.")))
+				database.DropCollection(collectionName);
 		}
 	}
 }
