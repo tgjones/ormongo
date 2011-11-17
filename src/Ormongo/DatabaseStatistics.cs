@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Ormongo
 {
 	public class DatabaseStatistics
@@ -11,5 +13,6 @@ namespace Ormongo
 		public long IndexSize { get; set; }
 		public long ObjectCount { get; set; }
 		public long StorageSize { get; set; }
+		public IEnumerable<CollectionStatistics> CollectionStatistics { get; set; }
 	}
 }

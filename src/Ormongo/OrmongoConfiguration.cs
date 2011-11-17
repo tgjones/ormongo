@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using MongoDB.Driver;
 
@@ -41,13 +42,19 @@ namespace Ormongo
 		public static void DropAllCollections()
 		{
 			var database = GetMongoDatabase();
-			foreach (var collectionName in database.GetCollectionNames().Where(s => !s.StartsWith("system.")))
+			foreach (var collectionName in GetCollectionNames(database))
 				database.DropCollection(collectionName);
+		}
+
+		private static IEnumerable<string> GetCollectionNames(MongoDatabase database)
+		{
+			return database.GetCollectionNames().Where(s => !s.StartsWith("system."));
 		}
 
 		public static DatabaseStatistics GetDatabaseStatistics()
 		{
-			var stats = GetMongoDatabase().GetStats();
+			var database = GetMongoDatabase();
+			var stats = database.GetStats();
 			return new DatabaseStatistics
 			{
 				AverageObjectSize = stats.AverageObjectSize,
@@ -58,8 +65,19 @@ namespace Ormongo
 				IndexCount = stats.IndexCount,
 				IndexSize = stats.IndexSize,
 				ObjectCount = stats.ObjectCount,
-				StorageSize = stats.StorageSize
+				StorageSize = stats.StorageSize,
+				CollectionStatistics = GetCollectionNames(database).Select(s => new CollectionStatistics
+				{
+					CollectionName = s,
+					Count = database.GetCollection(s).Count()
+				})
 			};
 		}
+	}
+
+	public class CollectionStatistics
+	{
+		public string CollectionName { get; set; }
+		public long Count { get; set; }
 	}
 }
