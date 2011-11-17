@@ -44,5 +44,22 @@ namespace Ormongo
 			foreach (var collectionName in database.GetCollectionNames().Where(s => !s.StartsWith("system.")))
 				database.DropCollection(collectionName);
 		}
+
+		public static DatabaseStatistics GetDatabaseStatistics()
+		{
+			var stats = GetMongoDatabase().GetStats();
+			return new DatabaseStatistics
+			{
+				AverageObjectSize = stats.AverageObjectSize,
+				CollectionCount = stats.CollectionCount,
+				DataSize = stats.DataSize,
+				ExtentCount = stats.ExtentCount,
+				FileSize = stats.FileSize,
+				IndexCount = stats.IndexCount,
+				IndexSize = stats.IndexSize,
+				ObjectCount = stats.ObjectCount,
+				StorageSize = stats.StorageSize
+			};
+		}
 	}
 }

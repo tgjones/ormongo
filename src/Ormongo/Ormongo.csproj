@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="Attachment.cs" />
     <Compile Include="AttachmentDeletingEventArgs.cs" />
+    <Compile Include="DatabaseStatistics.cs" />
     <Compile Include="DocumentDeletingEventArgs.cs" />
     <Compile Include="EmbeddedDocument.cs" />
     <Compile Include="Document.cs" />
