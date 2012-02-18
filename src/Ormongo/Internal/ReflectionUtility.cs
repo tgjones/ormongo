@@ -6,7 +6,7 @@ namespace Ormongo.Internal
 	{
 		public static bool IsSubclassOfRawGeneric(Type generic, Type toCheck)
 		{
-			while (toCheck != typeof(object))
+			while (toCheck != null && toCheck != typeof(object))
 			{
 				var cur = toCheck.IsGenericType ? toCheck.GetGenericTypeDefinition() : toCheck;
 				if (generic == cur)

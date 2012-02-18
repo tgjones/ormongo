@@ -35,6 +35,11 @@ namespace Ormongo
 		[BsonId, ScaffoldColumn(false)]
 		public ObjectId ID { get; set; }
 
+		public bool IsNewRecord
+		{
+			get { return ID == ObjectId.Empty; }
+		}
+
 		internal static MongoCollection<T> GetCollection()
 		{
 			string collectionName = typeof (T).Name;
