@@ -15,6 +15,7 @@ namespace Ormongo.Plugins.Ancestry
 		private const string AncestryKey = "Ancestry";
 		private const string AncestryWasKey = "AncestryWas";
 		private const string AncestryChangedKey = "AncestryChanged";
+		private const string DisableAncestryCallbacksKey = "DisableAncestryCallbacks";
 
 		private readonly T _instance;
 
@@ -34,7 +35,7 @@ namespace Ormongo.Plugins.Ancestry
 
 		private static AncestryProxy<T> GetAncestryProxy(T instance)
 		{
-			return (AncestryProxy<T>) ((IHasAncestry) instance).AncestryProxy;
+			return ((IHasAncestry<T>) instance).Ancestry;
 		}
 
 		//public static IQueryable<T> Roots
@@ -69,32 +70,6 @@ namespace Ormongo.Plugins.Ancestry
 			set { _instance.ExtraData.SafeSet(AncestryKey, value); }
 		}
 
-		void IAncestryProxy.UpdateDescendantsWithNewAncestry()
-		{
-			// Skip this if callbacks are disabled.
-			if (AncestryCallbacksDisabled)
-				return;
-
-			// Skip this if it's a new record or ancestry wasn't updated.
-			if (_instance.IsNewRecord || !AncestryChanged)
-				return;
-
-			// For each descendant...
-			foreach (var descendant in Descendants)
-			{
-				// Replace old ancestry with new ancestry.
-				GetAncestryProxy(descendant).WithoutAncestryCallbacks(() =>
-				{
-					string forReplace = (string.IsNullOrEmpty(Ancestry))
-						? _instance.ID.ToString()
-						: string.Format("{0}/{1}", Ancestry, _instance.ID);
-					string newAncestry = Regex.Replace((string)descendant.ExtraData[AncestryKey], "^" + ChildAncestry, forReplace);
-					descendant.ExtraData[AncestryKey] = newAncestry;
-					descendant.Save();
-				});
-			}
-		}
-
 		void IAncestryProxy.ResetChangedFields()
 		{
 			AncestryWas = Ancestry;
@@ -117,9 +92,9 @@ namespace Ormongo.Plugins.Ancestry
 				if (_instance.IsNewRecord)
 					throw new InvalidOperationException("No child ancestry for new record. Save record before performing tree operations.");
 
-				return (string.IsNullOrEmpty(AncestryWas))
+				return (String.IsNullOrEmpty(AncestryWas))
 					? _instance.ID.ToString()
-					: string.Format("{0}/{1}", AncestryWas, _instance.ID);
+					: String.Format("{0}/{1}", AncestryWas, _instance.ID);
 			}
 		}
 
@@ -127,7 +102,7 @@ namespace Ormongo.Plugins.Ancestry
 
 		public IEnumerable<ObjectId> AncestorIDs
 		{
-			get { return (string.IsNullOrEmpty(Ancestry)) ? new List<ObjectId>() : Ancestry.Split('/').Select(ObjectId.Parse); }
+			get { return (String.IsNullOrEmpty(Ancestry)) ? new List<ObjectId>() : Ancestry.Split('/').Select(ObjectId.Parse); }
 		}
 
 		public IQueryable<T> Ancestors
@@ -184,7 +159,7 @@ namespace Ormongo.Plugins.Ancestry
 
 		public bool IsRoot
 		{
-			get { return string.IsNullOrEmpty(Ancestry); }
+			get { return String.IsNullOrEmpty(Ancestry); }
 		}
 
 		#endregion
@@ -281,21 +256,78 @@ namespace Ormongo.Plugins.Ancestry
 
 		#endregion
 
-		#region Callback disabling
+		#region Callbacks
 
-		private bool _disableAncestryCallbacks;
-
-		public void WithoutAncestryCallbacks(Action callback)
+		private void WithoutAncestryCallbacks(Action callback)
 		{
-			_disableAncestryCallbacks = true;
+			_instance.TransientData.SafeSet(DisableAncestryCallbacksKey, true);
 			callback();
-			_disableAncestryCallbacks = false;
+			_instance.TransientData.SafeSet(DisableAncestryCallbacksKey, false);
 		}
 
-		public bool AncestryCallbacksDisabled
+		void IAncestryProxy.UpdateDescendantsWithNewAncestry()
 		{
-			get { return _disableAncestryCallbacks; }
+			// Skip this if callbacks are disabled.
+			if (_instance.TransientData.SafeGet<bool>(DisableAncestryCallbacksKey))
+				return;
+
+			// Skip this if it's a new record or ancestry wasn't updated.
+			if (_instance.IsNewRecord || !_instance.TransientData.SafeGet<bool>(AncestryChangedKey))
+				return;
+
+			// For each descendant...
+			foreach (var descendant in Descendants)
+			{
+				// Replace old ancestry with new ancestry.
+				GetAncestryProxy(descendant).WithoutAncestryCallbacks(() =>
+				{
+					string forReplace = (String.IsNullOrEmpty(Ancestry))
+						? _instance.ID.ToString()
+						: String.Format("{0}/{1}", Ancestry, _instance.ID);
+					string newAncestry = Regex.Replace((string)descendant.ExtraData[AncestryKey], "^" + ChildAncestry, forReplace);
+					descendant.ExtraData[AncestryKey] = newAncestry;
+					descendant.Save();
+				});
+			}
 		}
+
+		void IAncestryProxy.ApplyOrphanStrategy()
+		{
+
+		}
+
+		/*
+		 * /*
+		 *  # Apply orphan strategy
+      def apply_orphan_strategy
+        # Skip this if callbacks are disabled
+        unless ancestry_callbacks_disabled?
+          # If this isn't a new record ...
+          unless new_record?
+            # ... make al children root if orphan strategy is rootify
+            if self.base_class.orphan_strategy == :rootify
+              descendants.each do |descendant|
+                descendant.without_ancestry_callbacks do
+                  val = \
+                    unless descendant.ancestry == child_ancestry
+                      descendant.read_attribute(descendant.class.ancestry_field).gsub(/^#{child_ancestry}\//, '')
+                    end
+                  descendant.update_attribute descendant.class.ancestry_field, val
+                end
+              end
+              # ... destroy all descendants if orphan strategy is destroy
+            elsif self.base_class.orphan_strategy == :destroy
+              descendants.all.each do |descendant|
+                descendant.without_ancestry_callbacks { descendant.destroy }
+              end
+              # ... throw an exception if it has children and orphan strategy is restrict
+            elsif self.base_class.orphan_strategy == :restrict
+              raise Error.new('Cannot delete record because it has descendants.') unless is_childless?
+            end
+          end
+        end
+      end
+		 * */
 
 		#endregion
 

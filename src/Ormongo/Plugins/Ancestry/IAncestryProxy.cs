@@ -1,8 +1,9 @@
 namespace Ormongo.Plugins.Ancestry
 {
-	public interface IAncestryProxy
+	internal interface IAncestryProxy
 	{
 		void UpdateDescendantsWithNewAncestry();
 		void ResetChangedFields();
+		void ApplyOrphanStrategy();
 	}
 }

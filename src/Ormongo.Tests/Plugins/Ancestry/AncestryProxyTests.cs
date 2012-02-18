@@ -14,7 +14,7 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			TreeNode.Drop();
 		}
 
-		private class TreeNode : Document<TreeNode>, IHasAncestry
+		private class TreeNode : Document<TreeNode>, IHasAncestry<TreeNode>
 		{
 			public string Name { get; set; }
 
@@ -22,11 +22,6 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			public AncestryProxy<TreeNode> Ancestry
 			{
 				get { return _ancestry ?? (_ancestry = new AncestryProxy<TreeNode>(this)); }
-			}
-
-			IAncestryProxy IHasAncestry.AncestryProxy
-			{
-				get { return Ancestry; }
 			}
 		}
 

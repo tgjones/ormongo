@@ -4,90 +4,33 @@
 	{
 		public override void BeforeSave(object document)
 		{
-			var hasAncestryDocument = document as IHasAncestry;
-			if (hasAncestryDocument != null)
-				hasAncestryDocument.AncestryProxy.UpdateDescendantsWithNewAncestry();
+			if (HasAncestry(document))
+				GetAncestryProxy(document).UpdateDescendantsWithNewAncestry();
 			base.BeforeSave(document);
 		}
 
 		public override void AfterSave(object document)
 		{
-			var hasAncestryDocument = document as IHasAncestry;
-			if (hasAncestryDocument != null)
-				hasAncestryDocument.AncestryProxy.ResetChangedFields();
+			if (HasAncestry(document))
+				GetAncestryProxy(document).ResetChangedFields();
 			base.AfterSave(document);
 		}
 
 		public override void BeforeDestroy(object document)
 		{
-			var hasAncestryDocument = document as IHasAncestry;
-			if (hasAncestryDocument != null)
-				ApplyOrphanStrategy(document);
+			if (HasAncestry(document))
+				GetAncestryProxy(document).ApplyOrphanStrategy();
 			base.BeforeDestroy(document);
 		}
 
-		//private static void UpdateDescendantsWithNewAncestry(IHasAncestry document)
-		//{
-		//    // Skip this if callbacks are disabled.
-		//    if (AncestryCallbacksDisabled)
-		//        return;
-
-		//    // Skip this if it's a new record or ancestry wasn't updated.
-		//    if (_instance.IsNewRecord || !AncestryChanged)
-		//        return;
-
-		//    // For each descendant...
-		//    foreach (var descendant in Descendants)
-		//    {
-		//        // Replace old ancestry with new ancestry.
-		//        GetAncestryProxy(descendant).WithoutAncestryCallbacks(() =>
-		//        {
-		//            string forReplace = (string.IsNullOrEmpty(Ancestry))
-		//                ? _instance.ID.ToString()
-		//                : string.Format("{0}/{1}", Ancestry, _instance.ID);
-		//            string newAncestry = Regex.Replace((string)descendant.ExtraData[AncestryKey], "^" + ChildAncestry, forReplace);
-		//            descendant.ExtraData[AncestryKey] = newAncestry;
-		//            descendant.Save();
-		//        });
-		//    }
-		//}
-
-		private static void ApplyOrphanStrategy(object document)
+		private static bool HasAncestry(object document)
 		{
-			
+			return document.GetType().GetInterface("IHasAncestry`1") != null;
 		}
 
-		/*
-		 * /*
-		 *  # Apply orphan strategy
-      def apply_orphan_strategy
-        # Skip this if callbacks are disabled
-        unless ancestry_callbacks_disabled?
-          # If this isn't a new record ...
-          unless new_record?
-            # ... make al children root if orphan strategy is rootify
-            if self.base_class.orphan_strategy == :rootify
-              descendants.each do |descendant|
-                descendant.without_ancestry_callbacks do
-                  val = \
-                    unless descendant.ancestry == child_ancestry
-                      descendant.read_attribute(descendant.class.ancestry_field).gsub(/^#{child_ancestry}\//, '')
-                    end
-                  descendant.update_attribute descendant.class.ancestry_field, val
-                end
-              end
-              # ... destroy all descendants if orphan strategy is destroy
-            elsif self.base_class.orphan_strategy == :destroy
-              descendants.all.each do |descendant|
-                descendant.without_ancestry_callbacks { descendant.destroy }
-              end
-              # ... throw an exception if it has children and orphan strategy is restrict
-            elsif self.base_class.orphan_strategy == :restrict
-              raise Error.new('Cannot delete record because it has descendants.') unless is_childless?
-            end
-          end
-        end
-      end
-		 * */
+		private static IAncestryProxy GetAncestryProxy(object document)
+		{
+			return (IAncestryProxy) document.GetType().GetProperty("Ancestry").GetValue(document, null);
+		}
 	}
 }

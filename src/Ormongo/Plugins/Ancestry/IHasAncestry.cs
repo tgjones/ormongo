@@ -1,10 +1,8 @@
 ﻿namespace Ormongo.Plugins.Ancestry
 {
-	public interface IHasAncestry
+	public interface IHasAncestry<T>
+		where T : Document<T>
 	{
-		DataDictionary TransientData { get; }
-		DataDictionary ExtraData { get; }
-
-		IAncestryProxy AncestryProxy { get; }
+		AncestryProxy<T> Ancestry { get; }
 	}
 }
