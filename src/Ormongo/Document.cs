@@ -31,6 +31,9 @@ namespace Ormongo
 
 		static Document()
 		{
+			// TODO: Does this happen just once, or once for each concrete type
+			// created from this generic type?
+
 			// Register custom serialization provider.
 			BsonSerializer.RegisterSerializationProvider(new SerializationProvider());
 

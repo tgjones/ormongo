@@ -4,6 +4,6 @@ namespace Ormongo.Plugins.Ancestry
 	{
 		void UpdateDescendantsWithNewAncestry();
 		void ResetChangedFields();
-		void ApplyOrphanStrategy();
+		void ApplyOrphanStrategy(OrphanStrategy orphanStrategy);
 	}
 }

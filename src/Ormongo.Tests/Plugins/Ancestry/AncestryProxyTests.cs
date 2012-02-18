@@ -720,6 +720,98 @@ namespace Ormongo.Tests.Plugins.Ancestry
 
 		#endregion
 
+		#region Callbacks
+
+		[Ancestry(OrphanStrategy = OrphanStrategy.Destroy)]
+		private class TreeNodeWithDestroyOrphanStrategy : TreeNode { }
+
+		[Test]
+		public void CanUseDestroyOrphanStrategy()
+		{
+			// Arrange.
+			var rootNode = TreeNode.Create(new TreeNodeWithDestroyOrphanStrategy
+			{
+				Name = "Root"
+			});
+			var childNode = TreeNode.Create(new TreeNodeWithDestroyOrphanStrategy
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child"
+			});
+			var grandChildNode = TreeNode.Create(new TreeNodeWithDestroyOrphanStrategy
+			{
+				Ancestry = { Parent = childNode },
+				Name = "GrandChild"
+			});
+
+			// Act.
+			childNode.Destroy();
+
+			// Assert.
+			Assert.That(TreeNode.FindOneByID(childNode.ID), Is.Null);
+			Assert.That(TreeNode.FindOneByID(grandChildNode.ID), Is.Null);
+		}
+
+		[Ancestry(OrphanStrategy = OrphanStrategy.Restrict)]
+		private class TreeNodeWithRestrictOrphanStrategy : TreeNode { }
+
+		[Test]
+		public void CanUseRestrictOrphanStrategy()
+		{
+			// Arrange.
+			var rootNode = TreeNode.Create(new TreeNodeWithRestrictOrphanStrategy
+			{
+				Name = "Root"
+			});
+			var childNode = TreeNode.Create(new TreeNodeWithRestrictOrphanStrategy
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child"
+			});
+			TreeNode.Create(new TreeNodeWithRestrictOrphanStrategy
+			{
+				Ancestry = { Parent = childNode },
+				Name = "GrandChild"
+			});
+
+			// Act / Assert.
+			Assert.That(() => childNode.Destroy(), Throws.Exception);
+		}
+
+		[Ancestry(OrphanStrategy = OrphanStrategy.Rootify)]
+		private class TreeNodeWithRootifyOrphanStrategy : TreeNode { }
+
+		[Test]
+		public void CanUseRootifyOrphanStrategy()
+		{
+			// Arrange.
+			var rootNode = TreeNode.Create(new TreeNodeWithRootifyOrphanStrategy
+			{
+				Name = "Root"
+			});
+			var childNode = TreeNode.Create(new TreeNodeWithRootifyOrphanStrategy
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child"
+			});
+			var grandChildNode = TreeNode.Create(new TreeNodeWithRootifyOrphanStrategy
+			{
+				Ancestry = { Parent = childNode },
+				Name = "GrandChild"
+			});
+
+			// Act.
+			childNode.Destroy();
+
+			// Assert.
+			Assert.That(TreeNode.FindOneByID(childNode.ID), Is.Null);
+			Assert.That(TreeNode.FindOneByID(grandChildNode.ID).Ancestry.Parent, Is.Null);
+		}
+
+		// TODO: Test orphan strategy
+
+		#endregion
+
 		#endregion
 	}
 }
