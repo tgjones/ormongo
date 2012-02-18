@@ -12,7 +12,7 @@ namespace Ormongo.Plugins.Ancestry
 	public class AncestryProxy<T> : IAncestryProxy
 		where T : Document<T>
 	{
-		private const string AncestryKey = "Ancestry";
+		internal const string AncestryKey = "Ancestry";
 		private const string AncestryWasKey = "AncestryWas";
 		private const string AncestryChangedKey = "AncestryChanged";
 		private const string DisableAncestryCallbacksKey = "DisableAncestryCallbacks";
@@ -37,18 +37,6 @@ namespace Ormongo.Plugins.Ancestry
 		{
 			return ((IHasAncestry<T>) instance).Ancestry;
 		}
-
-		//public static IQueryable<T> Roots
-		//{
-		//    get { return Document<T>.Find(i => i.AncestryData == null); }
-		//}
-		
-		// scope :ancestors_of, lambda { |object| where(to_node(object).ancestor_conditions) }
-
-		//public static IQueryable<T> AncestorsOf(T item)
-		//{
-		//    return Document<T>.Find(i => item.Ancestry.AncestorIDs.Contains(i.ID));
-		//}
 
 		#endregion
 

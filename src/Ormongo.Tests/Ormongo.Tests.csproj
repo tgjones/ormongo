@@ -67,7 +67,10 @@
     <Compile Include="AttachmentTests.cs" />
     <Compile Include="Internal\ReflectionUtilityTests.cs" />
     <Compile Include="OrmongoConfigurationTests.cs" />
+    <Compile Include="Plugins\Ancestry\AncestryExtensionsTests.cs" />
     <Compile Include="Plugins\Ancestry\AncestryProxyTests.cs" />
+    <Compile Include="Plugins\Ancestry\AncestryTestsBase.cs" />
+    <Compile Include="Plugins\Ancestry\TreeNode.cs" />
     <Compile Include="TestEntities.cs" />
     <Compile Include="Internal\AssociationUtilityTests.cs" />
     <Compile Include="Internal\ExpressionUtilityTests.cs" />

@@ -72,6 +72,7 @@
     <Compile Include="Internal\Serialization\SerializationProvider.cs" />
     <Compile Include="OrmongoConfiguration.cs" />
     <Compile Include="Plugins\Ancestry\AncestryAttribute.cs" />
+    <Compile Include="Plugins\Ancestry\AncestryExtensions.cs" />
     <Compile Include="Plugins\Ancestry\AncestryProxy.cs" />
     <Compile Include="Plugins\Ancestry\AncestryPlugin.cs" />
     <Compile Include="Plugins\Ancestry\IAncestryProxy.cs" />

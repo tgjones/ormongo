@@ -6,68 +6,13 @@ using Ormongo.Plugins.Ancestry;
 namespace Ormongo.Tests.Plugins.Ancestry
 {
 	[TestFixture]
-	public class AncestryProxyTests : TestsBase
+	public class AncestryProxyTests : AncestryTestsBase
 	{
-		[TearDown]
-		public void TearDown()
-		{
-			TreeNode.Drop();
-		}
-
-		private class TreeNode : Document<TreeNode>, IHasAncestry<TreeNode>
-		{
-			public string Name { get; set; }
-
-			private AncestryProxy<TreeNode> _ancestry;
-			public AncestryProxy<TreeNode> Ancestry
-			{
-				get { return _ancestry ?? (_ancestry = new AncestryProxy<TreeNode>(this)); }
-			}
-		}
-
 		#region Static
 
 		#endregion
 
 		#region Instance
-
-		[Test]
-		public void CanMoveNodeWithinTree()
-		{
-			// Arrange.
-			var rootNode = TreeNode.Create(new TreeNode
-			{
-				Name = "Root"
-			});
-			var childNode1 = TreeNode.Create(new TreeNode
-			{
-				Ancestry = { Parent = rootNode },
-				Name = "Child1"
-			});
-			var grandChildNode = TreeNode.Create(new TreeNode
-			{
-				Ancestry = { Parent = childNode1 },
-				Name = "GrandChild"
-			});
-			var greatGrandChildNode = TreeNode.Create(new TreeNode
-			{
-				Ancestry = { Parent = grandChildNode },
-				Name = "GreatGrandChild"
-			});
-			var childNode2 = TreeNode.Create(new TreeNode
-			{
-				Ancestry = { Parent = rootNode },
-				Name = "Child2"
-			});
-
-			// Act.
-			grandChildNode.Ancestry.Parent = childNode2;
-			grandChildNode.Save();
-
-			// Assert.
-			greatGrandChildNode = TreeNode.FindOneByID(greatGrandChildNode.ID);
-			Assert.That(greatGrandChildNode.Ancestry.AncestorIDs, Contains.Item(childNode2.ID));
-		}
 
 		#region Ancestors
 
@@ -722,6 +667,44 @@ namespace Ormongo.Tests.Plugins.Ancestry
 
 		#region Callbacks
 
+		[Test]
+		public void CanMoveNodeWithinTree()
+		{
+			// Arrange.
+			var rootNode = TreeNode.Create(new TreeNode
+			{
+				Name = "Root"
+			});
+			var childNode1 = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child1"
+			});
+			var grandChildNode = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = childNode1 },
+				Name = "GrandChild"
+			});
+			var greatGrandChildNode = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = grandChildNode },
+				Name = "GreatGrandChild"
+			});
+			var childNode2 = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child2"
+			});
+
+			// Act.
+			grandChildNode.Ancestry.Parent = childNode2;
+			grandChildNode.Save();
+
+			// Assert.
+			greatGrandChildNode = TreeNode.FindOneByID(greatGrandChildNode.ID);
+			Assert.That(greatGrandChildNode.Ancestry.AncestorIDs, Contains.Item(childNode2.ID));
+		}
+
 		[Ancestry(OrphanStrategy = OrphanStrategy.Destroy)]
 		private class TreeNodeWithDestroyOrphanStrategy : TreeNode { }
 
@@ -807,8 +790,6 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			Assert.That(TreeNode.FindOneByID(childNode.ID), Is.Null);
 			Assert.That(TreeNode.FindOneByID(grandChildNode.ID).Ancestry.Parent, Is.Null);
 		}
-
-		// TODO: Test orphan strategy
 
 		#endregion
 
