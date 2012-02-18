@@ -53,18 +53,18 @@ namespace Ormongo
 		/// Some plugins use this to maintain state within the document.
 		/// </summary>
 		[BsonIgnore]
-		public Dictionary<string, object> TransientData { get; private set; }
+		public DataDictionary TransientData { get; private set; }
 
 		/// <summary>
 		/// A key/value collection of arbitrary data that doesn't have a strongly-typed
 		/// property accessor.
 		/// </summary>
-		public BsonDocument ExtraData { get; set; }
+		public DataDictionary ExtraData { get; set; }
 
 		public Document()
 		{
-			TransientData = new Dictionary<string, object>();
-			ExtraData = new BsonDocument();
+			TransientData = new DataDictionary();
+			ExtraData = new DataDictionary();
 		}
 
 		internal static MongoCollection<T> GetCollection()

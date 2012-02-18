@@ -26,6 +26,32 @@
 			base.BeforeDestroy(document);
 		}
 
+		//private static void UpdateDescendantsWithNewAncestry(IHasAncestry document)
+		//{
+		//    // Skip this if callbacks are disabled.
+		//    if (AncestryCallbacksDisabled)
+		//        return;
+
+		//    // Skip this if it's a new record or ancestry wasn't updated.
+		//    if (_instance.IsNewRecord || !AncestryChanged)
+		//        return;
+
+		//    // For each descendant...
+		//    foreach (var descendant in Descendants)
+		//    {
+		//        // Replace old ancestry with new ancestry.
+		//        GetAncestryProxy(descendant).WithoutAncestryCallbacks(() =>
+		//        {
+		//            string forReplace = (string.IsNullOrEmpty(Ancestry))
+		//                ? _instance.ID.ToString()
+		//                : string.Format("{0}/{1}", Ancestry, _instance.ID);
+		//            string newAncestry = Regex.Replace((string)descendant.ExtraData[AncestryKey], "^" + ChildAncestry, forReplace);
+		//            descendant.ExtraData[AncestryKey] = newAncestry;
+		//            descendant.Save();
+		//        });
+		//    }
+		//}
+
 		private static void ApplyOrphanStrategy(object document)
 		{
 			

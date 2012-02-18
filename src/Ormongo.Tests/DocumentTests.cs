@@ -62,7 +62,7 @@ namespace Ormongo.Tests
 			BlogPost retrievedPost = BlogPost.FindOneByID(post.ID);
 
 			// Assert.
-			Assert.That(retrievedPost.ExtraData["Hello"].AsString, Is.EqualTo("World"));
+			Assert.That(retrievedPost.ExtraData.SafeGet<string>("Hello"), Is.EqualTo("World"));
 		}
 
 		[Test]

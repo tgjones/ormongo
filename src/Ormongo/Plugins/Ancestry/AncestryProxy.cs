@@ -20,26 +20,14 @@ namespace Ormongo.Plugins.Ancestry
 
 		private bool AncestryChanged
 		{
-			get
-			{
-				object value;
-				if (_instance.TransientData.TryGetValue(AncestryChangedKey, out value))
-					return Convert.ToBoolean(value);
-				return false;
-			}
-			set { _instance.TransientData[AncestryChangedKey] = value; }
+			get { return _instance.TransientData.SafeGet<bool>(AncestryChangedKey); }
+			set { _instance.TransientData.SafeSet(AncestryChangedKey, value); }
 		}
 
 		private string AncestryWas
 		{
-			get
-			{
-				object value;
-				if (_instance.TransientData.TryGetValue(AncestryWasKey, out value))
-					return Convert.ToString(value);
-				return null;
-			}
-			set { _instance.TransientData[AncestryWasKey] = value; }
+			get { return _instance.TransientData.SafeGet<string>(AncestryWasKey); }
+			set { _instance.TransientData.SafeSet(AncestryWasKey, value); }
 		}
 
 		#region Static
@@ -77,14 +65,8 @@ namespace Ormongo.Plugins.Ancestry
 
 		public string Ancestry
 		{
-			get
-			{
-				BsonValue value;
-				if (_instance.ExtraData.TryGetValue(AncestryKey, out value))
-					return value.AsString;
-				return null;
-			}
-			set { _instance.ExtraData[AncestryKey] = value; }
+			get { return _instance.ExtraData.SafeGet<string>(AncestryKey); }
+			set { _instance.ExtraData.SafeSet(AncestryKey, value); }
 		}
 
 		void IAncestryProxy.UpdateDescendantsWithNewAncestry()
@@ -259,7 +241,7 @@ namespace Ormongo.Plugins.Ancestry
 
 		private static string GetExtraDataPropertyName()
 		{
-			return ExpressionUtility.GetPropertyName<T, BsonDocument>(d => d.ExtraData);
+			return ExpressionUtility.GetPropertyName<T, DataDictionary>(d => d.ExtraData);
 		}
 
 		public IQueryable<T> Descendants
