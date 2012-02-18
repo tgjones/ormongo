@@ -13,10 +13,34 @@ namespace Ormongo.Plugins.Ancestry
 		where T : Document<T>
 	{
 		private const string AncestryKey = "Ancestry";
+		private const string AncestryWasKey = "AncestryWas";
+		private const string AncestryChangedKey = "AncestryChanged";
 
 		private readonly T _instance;
-		private string _ancestryDataWas;
-		private bool _ancestryDataChanged;
+
+		private bool AncestryChanged
+		{
+			get
+			{
+				object value;
+				if (_instance.TransientData.TryGetValue(AncestryChangedKey, out value))
+					return Convert.ToBoolean(value);
+				return false;
+			}
+			set { _instance.TransientData[AncestryChangedKey] = value; }
+		}
+
+		private string AncestryWas
+		{
+			get
+			{
+				object value;
+				if (_instance.TransientData.TryGetValue(AncestryWasKey, out value))
+					return Convert.ToString(value);
+				return null;
+			}
+			set { _instance.TransientData[AncestryWasKey] = value; }
+		}
 
 		#region Static
 
@@ -44,7 +68,7 @@ namespace Ormongo.Plugins.Ancestry
 		public AncestryProxy(T instance)
 		{
 			_instance = instance;
-			_ancestryDataWas = Ancestry;
+			AncestryWas = Ancestry;
 		}
 
 		#endregion
@@ -70,7 +94,7 @@ namespace Ormongo.Plugins.Ancestry
 				return;
 
 			// Skip this if it's a new record or ancestry wasn't updated.
-			if (_instance.IsNewRecord || !_ancestryDataChanged)
+			if (_instance.IsNewRecord || !AncestryChanged)
 				return;
 
 			// For each descendant...
@@ -91,13 +115,13 @@ namespace Ormongo.Plugins.Ancestry
 
 		void IAncestryProxy.ResetChangedFields()
 		{
-			_ancestryDataWas = Ancestry;
+			AncestryWas = Ancestry;
 		}
 
 		private void UpdateAncestryData(string newValue)
 		{
 			Ancestry = newValue;
-			_ancestryDataChanged = true;
+			AncestryChanged = true;
 		}
 
 		/// <summary>
@@ -111,9 +135,9 @@ namespace Ormongo.Plugins.Ancestry
 				if (_instance.IsNewRecord)
 					throw new InvalidOperationException("No child ancestry for new record. Save record before performing tree operations.");
 
-				return (string.IsNullOrEmpty(_ancestryDataWas))
+				return (string.IsNullOrEmpty(AncestryWas))
 					? _instance.ID.ToString()
-					: string.Format("{0}/{1}", _ancestryDataWas, _instance.ID);
+					: string.Format("{0}/{1}", AncestryWas, _instance.ID);
 			}
 		}
 
