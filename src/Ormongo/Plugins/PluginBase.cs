@@ -7,6 +7,11 @@ namespace Ormongo.Plugins
 			
 		}
 
+		public virtual void AfterFind(object document)
+		{
+			
+		}
+
 		public virtual void BeforeSave(object document)
 		{
 

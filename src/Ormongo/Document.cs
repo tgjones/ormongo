@@ -48,9 +48,17 @@ namespace Ormongo
 			get { return ID == ObjectId.Empty; }
 		}
 
+		/// <summary>
+		/// Useful for temporarily storing data that doesn't need to be persisted to the database.
+		/// Some plugins use this to maintain state within the document.
+		/// </summary>
 		[BsonIgnore]
 		public Dictionary<string, object> TransientData { get; private set; }
 
+		/// <summary>
+		/// A key/value collection of arbitrary data that doesn't have a strongly-typed
+		/// property accessor.
+		/// </summary>
 		public BsonDocument ExtraData { get; set; }
 
 		public Document()

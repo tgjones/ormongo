@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver.Builders;
+using Ormongo.Internal;
 
 namespace Ormongo.Plugins.Ancestry
 {
@@ -232,13 +233,18 @@ namespace Ormongo.Plugins.Ancestry
 
 		#region Descendants
 
+		private static string GetExtraDataPropertyName()
+		{
+			return ExpressionUtility.GetPropertyName<T, BsonDocument>(d => d.ExtraData);
+		}
+
 		public IQueryable<T> Descendants
 		{
 			get
 			{
 				return Document<T>.FindNative(Query.Or(
-					Query.Matches("ExtraProperties." + AncestryKey, "^" + ChildAncestry + "/"),
-					Query.EQ("ExtraProperties." + AncestryKey, ChildAncestry)));
+					Query.Matches(GetExtraDataPropertyName() + "." + AncestryKey, "^" + ChildAncestry + "/"),
+					Query.EQ(GetExtraDataPropertyName() + "." + AncestryKey, ChildAncestry)));
 			}
 		}
 
@@ -257,8 +263,8 @@ namespace Ormongo.Plugins.Ancestry
 			{
 				return Document<T>.FindNative(Query.Or(
 					Query.EQ("_id", _instance.ID),
-					Query.Matches("ExtraProperties." + AncestryKey, "^" + ChildAncestry + "/"),
-					Query.EQ("ExtraProperties." + AncestryKey, ChildAncestry)));
+					Query.Matches(GetExtraDataPropertyName() + "." + AncestryKey, "^" + ChildAncestry + "/"),
+					Query.EQ(GetExtraDataPropertyName() + "." + AncestryKey, ChildAncestry)));
 			}
 		}
 

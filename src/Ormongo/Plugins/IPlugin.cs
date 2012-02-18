@@ -9,5 +9,7 @@ namespace Ormongo.Plugins
 
 		void BeforeDestroy(object document);
 		void AfterDestroy(object document);
+
+		void AfterFind(object document);
 	}
 }
