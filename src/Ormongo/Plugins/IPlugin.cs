@@ -4,5 +4,6 @@ namespace Ormongo.Plugins
 	{
 		void Initialize();
 		void BeforeSave(object document);
+		void AfterSave(object document);
 	}
 }

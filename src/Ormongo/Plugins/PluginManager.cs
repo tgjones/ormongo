@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Ormongo.Plugins.Ancestry;
 
 namespace Ormongo.Plugins
 {
@@ -8,21 +9,21 @@ namespace Ormongo.Plugins
 	{
 		private static List<IPlugin> _plugins;
 
-		internal static List<IPlugin> FindPlugins()
+		private static List<IPlugin> Plugins
 		{
-			Type pluginInterfaceType = typeof(IPlugin);
-			return typeof(PluginManager).Assembly.GetTypes()
-				.Where(t => !t.IsInterface && !t.IsAbstract)
-				.Where(pluginInterfaceType.IsAssignableFrom)
-				.Select(t => (IPlugin)Activator.CreateInstance(t))
-				.ToList();
+			get { return _plugins ?? (_plugins = FindPlugins().ToList()); }
+		}
+
+		internal static IEnumerable<IPlugin> FindPlugins()
+		{
+			yield return new ValidationPlugin();
+			yield return new AssociationPlugin();
+			yield return new AncestryPlugin();
 		}
 
 		public static void Execute(Action<IPlugin> action)
 		{
-			if (_plugins == null)
-				_plugins = FindPlugins();
-			_plugins.ForEach(action);
+			Plugins.ForEach(action);
 		}
 	}
 }

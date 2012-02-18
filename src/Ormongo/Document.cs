@@ -21,7 +21,7 @@ namespace Ormongo
 		public static EventHandler<DocumentEventArgs<T>> Created;
 		public static EventHandler<DocumentDeletingEventArgs> Deleting;
 		public static EventHandler<DocumentEventArgs<T>> Saving;
-		public static EventHandler<DocumentEventArgs<T>> Saved;
+		public static EventHandler<DocumentEventArgs<T>> ItemSaved;
 
 		static Document()
 		{
@@ -32,12 +32,21 @@ namespace Ormongo
 			PluginManager.Execute(p => p.Initialize());
 		}
 
+		public EventHandler<DocumentEventArgs<T>> Saved;
+
 		[BsonId, ScaffoldColumn(false)]
 		public ObjectId ID { get; set; }
 
 		public bool IsNewRecord
 		{
 			get { return ID == ObjectId.Empty; }
+		}
+
+		public BsonDocument ExtraProperties { get; set; }
+
+		public Document()
+		{
+			ExtraProperties = new BsonDocument();
 		}
 
 		internal static MongoCollection<T> GetCollection()
@@ -76,6 +85,8 @@ namespace Ormongo
 		{
 			if (Saved != null)
 				Saved(sender, args);
+			if (ItemSaved != null)
+				ItemSaved(sender, args);
 		}
 
 		public void Save()
@@ -84,11 +95,17 @@ namespace Ormongo
 			PluginManager.Execute(p => p.BeforeSave(this));
 			GetCollection().Save(this);
 			OnSaved(this, new DocumentEventArgs<T>((T) this));
+			PluginManager.Execute(p => p.AfterSave(this));
 		}
 
 		#endregion
 
 		#region Querying
+
+		public static IQueryable<T> FindNative(IMongoQuery query)
+		{
+			return GetCollection().Find(query).AsQueryable();
+		}
 
 		public static T FindOneByID(ObjectId id)
 		{

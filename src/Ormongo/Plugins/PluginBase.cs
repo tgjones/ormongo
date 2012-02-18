@@ -11,5 +11,10 @@ namespace Ormongo.Plugins
 		{
 
 		}
+
+		public virtual void AfterSave(object document)
+		{
+
+		}
 	}
 }

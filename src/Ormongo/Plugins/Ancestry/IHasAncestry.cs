@@ -2,6 +2,6 @@
 {
 	public interface IHasAncestry
 	{
-		string Ancestry { get; set; }
+		IAncestryProxy AncestryProxy { get; }
 	}
 }

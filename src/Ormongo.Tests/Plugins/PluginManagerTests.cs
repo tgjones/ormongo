@@ -1,3 +1,4 @@
+using System.Linq;
 using NUnit.Framework;
 using Ormongo.Plugins;
 using Ormongo.Plugins.Ancestry;
@@ -11,7 +12,7 @@ namespace Ormongo.Tests.Plugins
 		public void CanFindPlugins()
 		{
 			// Act.
-			var plugins = PluginManager.FindPlugins();
+			var plugins = PluginManager.FindPlugins().ToList();
 
 			// Assert.
 			Assert.That(plugins, Has.Count.EqualTo(3));

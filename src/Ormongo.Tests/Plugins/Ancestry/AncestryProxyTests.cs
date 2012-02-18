@@ -1,15 +1,77 @@
 ﻿using System.Linq;
+using FluentMongo.Linq;
 using NUnit.Framework;
 using Ormongo.Plugins.Ancestry;
 
 namespace Ormongo.Tests.Plugins.Ancestry
 {
 	[TestFixture]
-	public class AncestryDocumentTests
+	public class AncestryProxyTests : TestsBase
 	{
-		private class TreeNode : AncestryDocument<TreeNode>
+		[TearDown]
+		public void TearDown()
+		{
+			TreeNode.Drop();
+		}
+
+		private class TreeNode : Document<TreeNode>, IHasAncestry
 		{
 			public string Name { get; set; }
+
+			private AncestryProxy<TreeNode> _ancestry;
+			public AncestryProxy<TreeNode> Ancestry
+			{
+				get { return _ancestry ?? (_ancestry = new AncestryProxy<TreeNode>(this)); }
+			}
+
+			IAncestryProxy IHasAncestry.AncestryProxy
+			{
+				get { return Ancestry; }
+			}
+		}
+
+		#region Static
+
+		#endregion
+
+		#region Instance
+
+		[Test]
+		public void CanMoveNodeWithinTree()
+		{
+			// Arrange.
+			var rootNode = TreeNode.Create(new TreeNode
+			{
+				Name = "Root"
+			});
+			var childNode1 = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child1"
+			});
+			var grandChildNode = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = childNode1 },
+				Name = "GrandChild"
+			});
+			var greatGrandChildNode = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = grandChildNode },
+				Name = "GreatGrandChild"
+			});
+			var childNode2 = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child2"
+			});
+
+			// Act.
+			grandChildNode.Ancestry.Parent = childNode2;
+			grandChildNode.Save();
+
+			// Assert.
+			greatGrandChildNode = TreeNode.FindOneByID(greatGrandChildNode.ID);
+			Assert.That(greatGrandChildNode.Ancestry.AncestorIDs, Contains.Item(childNode2.ID));
 		}
 
 		#region Ancestors
@@ -24,22 +86,131 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 			var childNode = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child"
 			});
 			var grandChildNode = TreeNode.Create(new TreeNode
 			{
-				Parent = childNode,
+				Ancestry = { Parent = childNode },
 				Name = "GrandChild"
 			});
 
 			// Act.
-			var result = grandChildNode.AncestorIDs.ToList();
+			var result = grandChildNode.Ancestry.AncestorIDs.ToList();
 
 			// Assert.
 			Assert.That(result, Has.Count.EqualTo(2));
 			Assert.That(result[0], Is.EqualTo(rootNode.ID));
 			Assert.That(result[1], Is.EqualTo(childNode.ID));
+		}
+
+		[Test]
+		public void CanGetAncestors()
+		{
+			// Arrange.
+			var rootNode = TreeNode.Create(new TreeNode
+			{
+				Name = "Root"
+			});
+			var childNode = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child"
+			});
+			var grandChildNode = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = childNode },
+				Name = "GrandChild"
+			});
+
+			// Act.
+			var result = grandChildNode.Ancestry.Ancestors.ToList();
+
+			// Assert.
+			Assert.That(result, Has.Count.EqualTo(2));
+			Assert.That(result[0].ID, Is.EqualTo(rootNode.ID));
+			Assert.That(result[1].ID, Is.EqualTo(childNode.ID));
+		}
+
+		[Test]
+		public void CanGetPathIDs()
+		{
+			// Arrange.
+			var rootNode = TreeNode.Create(new TreeNode
+			{
+				Name = "Root"
+			});
+			var childNode = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child"
+			});
+			var grandChildNode = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = childNode },
+				Name = "GrandChild"
+			});
+
+			// Act.
+			var result = grandChildNode.Ancestry.PathIDs.ToList();
+
+			// Assert.
+			Assert.That(result, Has.Count.EqualTo(3));
+			Assert.That(result[0], Is.EqualTo(rootNode.ID));
+			Assert.That(result[1], Is.EqualTo(childNode.ID));
+			Assert.That(result[2], Is.EqualTo(grandChildNode.ID));
+		}
+
+		[Test]
+		public void CanGetPath()
+		{
+			// Arrange.
+			var rootNode = TreeNode.Create(new TreeNode
+			{
+				Name = "Root"
+			});
+			var childNode = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child"
+			});
+			var grandChildNode = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = childNode },
+				Name = "GrandChild"
+			});
+
+			// Act.
+			var result = grandChildNode.Ancestry.Path.ToList();
+
+			// Assert.
+			Assert.That(result, Has.Count.EqualTo(3));
+			Assert.That(result[0].ID, Is.EqualTo(rootNode.ID));
+			Assert.That(result[1].ID, Is.EqualTo(childNode.ID));
+			Assert.That(result[2].ID, Is.EqualTo(grandChildNode.ID));
+		}
+
+		[Test]
+		public void CanGetDepth()
+		{
+			// Arrange.
+			var rootNode = TreeNode.Create(new TreeNode
+			{
+				Name = "Root"
+			});
+			var childNode = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child"
+			});
+			var grandChildNode = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = childNode },
+				Name = "GrandChild"
+			});
+
+			// Act.
+			Assert.That(grandChildNode.Ancestry.Depth, Is.EqualTo(2));
 		}
 
 		#endregion
@@ -60,10 +231,10 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 
 			// Act.
-			childNode.Parent = rootNode;
+			childNode.Ancestry.Parent = rootNode;
 
 			// Assert.
-			Assert.That(childNode.Parent.ID, Is.EqualTo(rootNode.ID));
+			Assert.That(childNode.Ancestry.Parent.ID, Is.EqualTo(rootNode.ID));
 		}
 
 		[Test]
@@ -80,10 +251,10 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 
 			// Act.
-			childNode.ParentID = rootNode.ID;
+			childNode.Ancestry.ParentID = rootNode.ID;
 
 			// Assert.
-			Assert.That(childNode.Parent.ID, Is.EqualTo(rootNode.ID));
+			Assert.That(childNode.Ancestry.Parent.ID, Is.EqualTo(rootNode.ID));
 		}
 
 		#endregion
@@ -100,7 +271,7 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 
 			// Act.
-			var rootID = rootNode.RootID;
+			var rootID = rootNode.Ancestry.RootID;
 
 			// Assert.
 			Assert.That(rootID, Is.EqualTo(rootNode.ID));
@@ -116,12 +287,12 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 			var childNode = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child"
 			});
 
 			// Act.
-			var rootID = childNode.RootID;
+			var rootID = childNode.Ancestry.RootID;
 
 			// Assert.
 			Assert.That(rootID, Is.EqualTo(rootNode.ID));
@@ -137,12 +308,12 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 			var childNode = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child"
 			});
 
 			// Act.
-			var root = childNode.Root;
+			var root = childNode.Ancestry.Root;
 
 			// Assert.
 			Assert.That(root.ID, Is.EqualTo(rootNode.ID));
@@ -158,7 +329,7 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 
 			// Act / Assert.
-			Assert.That(rootNode.IsRoot, Is.True);
+			Assert.That(rootNode.Ancestry.IsRoot, Is.True);
 		}
 
 		[Test]
@@ -171,12 +342,12 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 			var childNode = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child"
 			});
 
 			// Act / Assert.
-			Assert.That(childNode.IsRoot, Is.False);
+			Assert.That(childNode.Ancestry.IsRoot, Is.False);
 		}
 
 		#endregion
@@ -193,17 +364,17 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 			var childNode1 = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child1"
 			});
 			var childNode2 = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child2"
 			});
 
 			// Act.
-			var children = rootNode.Children.ToList();
+			var children = rootNode.Ancestry.Children.ToList();
 
 			// Assert.
 			Assert.That(children, Has.Count.EqualTo(2));
@@ -221,17 +392,17 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 			var childNode1 = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child1"
 			});
 			var childNode2 = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child2"
 			});
 
 			// Act.
-			var childIDs = rootNode.ChildIDs.ToList();
+			var childIDs = rootNode.Ancestry.ChildIDs.ToList();
 
 			// Assert.
 			Assert.That(childIDs, Has.Count.EqualTo(2));
@@ -249,13 +420,13 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 			TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child1"
 			});
 
 			// Act / Assert.
-			Assert.That(rootNode.HasChildren, Is.True);
-			Assert.That(rootNode.IsChildless, Is.False);
+			Assert.That(rootNode.Ancestry.HasChildren, Is.True);
+			Assert.That(rootNode.Ancestry.IsChildless, Is.False);
 		}
 
 		[Test]
@@ -268,8 +439,8 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 
 			// Act / Assert.
-			Assert.That(rootNode.HasChildren, Is.False);
-			Assert.That(rootNode.IsChildless, Is.True);
+			Assert.That(rootNode.Ancestry.HasChildren, Is.False);
+			Assert.That(rootNode.Ancestry.IsChildless, Is.True);
 		}
 
 		[Test]
@@ -282,18 +453,18 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 			var childNode = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child"
 			});
 			TreeNode.Create(new TreeNode
 			{
-				Parent = childNode,
+				Ancestry = { Parent = childNode },
 				Name = "GrandChild"
 			});
 
 			// Act / Assert.
-			Assert.That(childNode.HasChildren, Is.True);
-			Assert.That(childNode.IsChildless, Is.False);
+			Assert.That(childNode.Ancestry.HasChildren, Is.True);
+			Assert.That(childNode.Ancestry.IsChildless, Is.False);
 		}
 
 		[Test]
@@ -306,13 +477,13 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 			var childNode = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child"
 			});
 
 			// Act / Assert.
-			Assert.That(childNode.HasChildren, Is.False);
-			Assert.That(childNode.IsChildless, Is.True);
+			Assert.That(childNode.Ancestry.HasChildren, Is.False);
+			Assert.That(childNode.Ancestry.IsChildless, Is.True);
 		}
 
 		#endregion
@@ -329,22 +500,22 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 			var childNode1 = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child1"
 			});
 			var childNode2 = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child2"
 			});
 			var childNode3 = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child3"
 			});
 
 			// Act.
-			var siblings = childNode1.Siblings.ToList();
+			var siblings = childNode1.Ancestry.Siblings.ToList();
 
 			// Assert.
 			Assert.That(siblings, Has.Count.EqualTo(3));
@@ -363,22 +534,22 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 			var childNode1 = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child1"
 			});
 			var childNode2 = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child2"
 			});
 			var childNode3 = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child3"
 			});
 
 			// Act.
-			var siblingIDs = childNode1.SiblingIDs.ToList();
+			var siblingIDs = childNode1.Ancestry.SiblingIDs.ToList();
 
 			// Assert.
 			Assert.That(siblingIDs, Has.Count.EqualTo(3));
@@ -397,18 +568,18 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 			var childNode1 = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child1"
 			});
 			TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child2"
 			});
 
 			// Act / Assert.
-			Assert.That(childNode1.HasSiblings, Is.True);
-			Assert.That(childNode1.IsOnlyChild, Is.False);
+			Assert.That(childNode1.Ancestry.HasSiblings, Is.True);
+			Assert.That(childNode1.Ancestry.IsOnlyChild, Is.False);
 		}
 
 		[Test]
@@ -421,13 +592,13 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 			var childNode = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child"
 			});
 
 			// Act / Assert.
-			Assert.That(childNode.HasSiblings, Is.False);
-			Assert.That(childNode.IsOnlyChild, Is.True);
+			Assert.That(childNode.Ancestry.HasSiblings, Is.False);
+			Assert.That(childNode.Ancestry.IsOnlyChild, Is.True);
 		}
 
 		#endregion
@@ -444,17 +615,17 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 			var childNode = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child"
 			});
 			var grandChildNode = TreeNode.Create(new TreeNode
 			{
-				Parent = childNode,
+				Ancestry = { Parent = childNode },
 				Name = "GrandChild"
 			});
 
 			// Act.
-			var result = rootNode.Descendants.ToList();
+			var result = rootNode.Ancestry.Descendants.QueryDump(Log).ToList();
 
 			// Assert.
 			Assert.That(result, Has.Count.EqualTo(2));
@@ -472,17 +643,17 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 			var childNode = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child"
 			});
 			var grandChildNode = TreeNode.Create(new TreeNode
 			{
-				Parent = childNode,
+				Ancestry = { Parent = childNode },
 				Name = "GrandChild"
 			});
 
 			// Act.
-			var result = rootNode.DescendantIDs.ToList();
+			var result = rootNode.Ancestry.DescendantIDs.ToList();
 
 			// Assert.
 			Assert.That(result, Has.Count.EqualTo(2));
@@ -492,7 +663,7 @@ namespace Ormongo.Tests.Plugins.Ancestry
 
 		#endregion
 
-		#region Descendants
+		#region Subtree
 
 		[Test]
 		public void CanGetSubtree()
@@ -504,17 +675,17 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 			var childNode = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child"
 			});
 			var grandChildNode = TreeNode.Create(new TreeNode
 			{
-				Parent = childNode,
+				Ancestry = { Parent = childNode },
 				Name = "GrandChild"
 			});
 
 			// Act.
-			var result = rootNode.Subtree.ToList();
+			var result = rootNode.Ancestry.Subtree.ToList();
 
 			// Assert.
 			Assert.That(result, Has.Count.EqualTo(3));
@@ -533,17 +704,17 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 			var childNode = TreeNode.Create(new TreeNode
 			{
-				Parent = rootNode,
+				Ancestry = { Parent = rootNode },
 				Name = "Child"
 			});
 			var grandChildNode = TreeNode.Create(new TreeNode
 			{
-				Parent = childNode,
+				Ancestry = { Parent = childNode },
 				Name = "GrandChild"
 			});
 
 			// Act.
-			var result = rootNode.SubtreeIDs.ToList();
+			var result = rootNode.Ancestry.SubtreeIDs.ToList();
 
 			// Assert.
 			Assert.That(result, Has.Count.EqualTo(3));
@@ -551,6 +722,8 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			Assert.That(result[1], Is.EqualTo(childNode.ID));
 			Assert.That(result[2], Is.EqualTo(grandChildNode.ID));
 		}
+
+		#endregion
 
 		#endregion
 	}
