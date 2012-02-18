@@ -26,6 +26,46 @@ namespace Ormongo.Tests
 		}
 
 		[Test]
+		public void TransientDataIsNotSaved()
+		{
+			// Arrange.
+			BlogPost post = BlogPost.Create(new BlogPost
+			{
+				DatePublished = DateTime.Now,
+				Title = "My Blog Post",
+				Text = "Some text"
+			});
+			post.TransientData["Hello"] = "World";
+			post.Save();
+
+			// Act.
+			BlogPost retrievedPost = BlogPost.FindOneByID(post.ID);
+
+			// Assert.
+			Assert.That(retrievedPost.TransientData, Is.Empty);
+		}
+
+		[Test]
+		public void ExtraDataIsSaved()
+		{
+			// Arrange.
+			BlogPost post = BlogPost.Create(new BlogPost
+			{
+				DatePublished = DateTime.Now,
+				Title = "My Blog Post",
+				Text = "Some text"
+			});
+			post.ExtraData["Hello"] = "World";
+			post.Save();
+
+			// Act.
+			BlogPost retrievedPost = BlogPost.FindOneByID(post.ID);
+
+			// Assert.
+			Assert.That(retrievedPost.ExtraData["Hello"].AsString, Is.EqualTo("World"));
+		}
+
+		[Test]
 		public void CanCreateNewBlogPost()
 		{
 			// Act.

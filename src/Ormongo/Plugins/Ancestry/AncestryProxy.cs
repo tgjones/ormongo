@@ -55,11 +55,11 @@ namespace Ormongo.Plugins.Ancestry
 			get
 			{
 				BsonValue value;
-				if (_instance.ExtraProperties.TryGetValue(AncestryKey, out value))
+				if (_instance.ExtraData.TryGetValue(AncestryKey, out value))
 					return value.AsString;
 				return null;
 			}
-			set { _instance.ExtraProperties[AncestryKey] = value; }
+			set { _instance.ExtraData[AncestryKey] = value; }
 		}
 
 		void IAncestryProxy.UpdateDescendantsWithNewAncestry()
@@ -81,8 +81,8 @@ namespace Ormongo.Plugins.Ancestry
 					string forReplace = (string.IsNullOrEmpty(Ancestry))
 						? _instance.ID.ToString()
 						: string.Format("{0}/{1}", Ancestry, _instance.ID);
-					string newAncestry = Regex.Replace((string) descendant.ExtraProperties[AncestryKey], "^" + ChildAncestry, forReplace);
-					descendant.ExtraProperties[AncestryKey] = newAncestry;
+					string newAncestry = Regex.Replace((string)descendant.ExtraData[AncestryKey], "^" + ChildAncestry, forReplace);
+					descendant.ExtraData[AncestryKey] = newAncestry;
 					descendant.Save();
 				});
 			}
@@ -98,32 +98,6 @@ namespace Ormongo.Plugins.Ancestry
 			Ancestry = newValue;
 			_ancestryDataChanged = true;
 		}
-
-		/*
-		 *  # Update descendants with new ancestry
-      def update_descendants_with_new_ancestry
-        # Skip this if callbacks are disabled
-        unless ancestry_callbacks_disabled?
-          # If node is valid, not a new record and ancestry was updated ...
-          if changed.include?(self.base_class.ancestry_field.to_s) && !new_record? && valid?
-            # ... for each descendant ...
-            descendants.each do |descendant|
-              # ... replace old ancestry with new ancestry
-              descendant.without_ancestry_callbacks do
-                for_replace = \
-                  if read_attribute(self.class.ancestry_field).blank?
-                    id.to_s
-                  else
-                    "#{read_attribute self.class.ancestry_field}/#{id}"
-                  end
-                new_ancestry = descendant.read_attribute(descendant.class.ancestry_field).gsub(/^#{self.child_ancestry}/, for_replace)
-                descendant.update_attribute(self.base_class.ancestry_field, new_ancestry)
-              end
-            end
-          end
-        end
-      end
-		 * */
 
 		/// <summary>
 		/// The ancestry value for this record's children
@@ -212,7 +186,7 @@ namespace Ormongo.Plugins.Ancestry
 
 		public IQueryable<T> Children
 		{
-			get { return Document<T>.Find(d => d.ExtraProperties[AncestryKey] == ChildAncestry); }
+			get { return Document<T>.Find(d => d.ExtraData[AncestryKey] == ChildAncestry); }
 		}
 
 		public IEnumerable<ObjectId> ChildIDs
@@ -236,7 +210,7 @@ namespace Ormongo.Plugins.Ancestry
 
 		public IQueryable<T> Siblings
 		{
-			get { return Document<T>.Find(d => d.ExtraProperties[AncestryKey] == Ancestry); }
+			get { return Document<T>.Find(d => d.ExtraData[AncestryKey] == Ancestry); }
 		}
 
 		public IEnumerable<ObjectId> SiblingIDs

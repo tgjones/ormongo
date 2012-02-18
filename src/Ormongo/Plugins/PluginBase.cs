@@ -16,5 +16,15 @@ namespace Ormongo.Plugins
 		{
 
 		}
+
+		public virtual void BeforeDestroy(object document)
+		{
+			
+		}
+
+		public virtual void AfterDestroy(object document)
+		{
+
+		}
 	}
 }

@@ -18,10 +18,16 @@ namespace Ormongo
 	public class Document<T>
 		where T : Document<T>
 	{
+		#region Static
+
+		#region Events
+
 		public static EventHandler<DocumentEventArgs<T>> Created;
 		public static EventHandler<DocumentDeletingEventArgs> Deleting;
 		public static EventHandler<DocumentEventArgs<T>> Saving;
-		public static EventHandler<DocumentEventArgs<T>> ItemSaved;
+		public static EventHandler<DocumentEventArgs<T>> Saved;
+
+		#endregion
 
 		static Document()
 		{
@@ -32,7 +38,7 @@ namespace Ormongo
 			PluginManager.Execute(p => p.Initialize());
 		}
 
-		public EventHandler<DocumentEventArgs<T>> Saved;
+		#endregion
 
 		[BsonId, ScaffoldColumn(false)]
 		public ObjectId ID { get; set; }
@@ -42,11 +48,15 @@ namespace Ormongo
 			get { return ID == ObjectId.Empty; }
 		}
 
-		public BsonDocument ExtraProperties { get; set; }
+		[BsonIgnore]
+		public Dictionary<string, object> TransientData { get; private set; }
+
+		public BsonDocument ExtraData { get; set; }
 
 		public Document()
 		{
-			ExtraProperties = new BsonDocument();
+			TransientData = new Dictionary<string, object>();
+			ExtraData = new BsonDocument();
 		}
 
 		internal static MongoCollection<T> GetCollection()
@@ -85,8 +95,6 @@ namespace Ormongo
 		{
 			if (Saved != null)
 				Saved(sender, args);
-			if (ItemSaved != null)
-				ItemSaved(sender, args);
 		}
 
 		public void Save()
@@ -96,6 +104,43 @@ namespace Ormongo
 			GetCollection().Save(this);
 			OnSaved(this, new DocumentEventArgs<T>((T) this));
 			PluginManager.Execute(p => p.AfterSave(this));
+		}
+
+		public static T Create(T item)
+		{
+			item.Save();
+			item.OnCreated(null, new DocumentEventArgs<T>(item));
+			return item;
+		}
+
+		protected virtual void OnCreated(object sender, DocumentEventArgs<T> args)
+		{
+			if (Created != null)
+				Created(sender, args);
+		}
+
+		public static void Delete(ObjectId id)
+		{
+			OnDeleting(null, new DocumentDeletingEventArgs(id));
+			GetCollection().Remove(GetIDQuery(id));
+		}
+
+		private static void OnDeleting(object sender, DocumentDeletingEventArgs args)
+		{
+			if (Deleting != null)
+				Deleting(sender, args);
+		}
+
+		public static void DeleteAll()
+		{
+			GetCollection().RemoveAll();
+		}
+
+		public void Destroy()
+		{
+			PluginManager.Execute(p => p.BeforeDestroy(this));
+			Delete(ID);
+			PluginManager.Execute(p => p.AfterDestroy(this));
 		}
 
 		#endregion
@@ -134,40 +179,6 @@ namespace Ormongo
 			var cursor = GetCollection().Find(query);
 			cursor.Limit = limit;
 			return cursor;
-		}
-
-		#endregion
-
-		#region Persistence
-
-		public static T Create(T item)
-		{
-			item.Save();
-			item.OnCreated(null, new DocumentEventArgs<T>(item));
-			return item;
-		}
-
-		protected virtual void OnCreated(object sender, DocumentEventArgs<T> args)
-		{
-			if (Created != null)
-				Created(sender, args);
-		}
-
-		public static void Delete(ObjectId id)
-		{
-			OnDeleting(null, new DocumentDeletingEventArgs(id));
-			GetCollection().Remove(GetIDQuery(id));
-		}
-
-		private static void OnDeleting(object sender, DocumentDeletingEventArgs args)
-		{
-			if (Deleting != null)
-				Deleting(sender, args);
-		}
-
-		public static void DeleteAll()
-		{
-			GetCollection().RemoveAll();
 		}
 
 		#endregion
