@@ -1,12 +1,13 @@
 using System;
 using System.Linq;
+using FluentMongo.Linq;
 using MongoDB.Bson;
 using NUnit.Framework;
 
 namespace Ormongo.Tests
 {
 	[TestFixture]
-	public class DocumentTests
+	public class DocumentTests : TestsBase
 	{
 		[TearDown]
 		public void TearDown()
@@ -154,7 +155,7 @@ namespace Ormongo.Tests
 			post2.Save();
 
 			// Act.
-			var matchingPosts = BlogPost.Find(bp => bp.Authors.Any(a => a == authorID)).ToList();
+			var matchingPosts = BlogPost.Find(bp => bp.Authors.Contains(authorID)).QueryDump(Log).ToList();
 
 			// Assert.
 			Assert.That(matchingPosts.Count, Is.EqualTo(1));
