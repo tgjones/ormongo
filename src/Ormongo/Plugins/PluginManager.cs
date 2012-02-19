@@ -17,7 +17,7 @@ namespace Ormongo.Plugins
 		internal static IEnumerable<IPlugin> FindPlugins()
 		{
 			yield return new ValidationPlugin();
-			yield return new AssociationPlugin();
+			yield return new EmbeddedDocumentPlugin();
 			yield return new AncestryPlugin();
 		}
 

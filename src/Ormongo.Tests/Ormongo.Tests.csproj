@@ -63,7 +63,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssociationTests.cs" />
+    <Compile Include="EmbeddedDocumentTests.cs" />
     <Compile Include="AttachmentTests.cs" />
     <Compile Include="Internal\ReflectionUtilityTests.cs" />
     <Compile Include="OrmongoConfigurationTests.cs" />

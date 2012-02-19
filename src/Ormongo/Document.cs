@@ -263,7 +263,7 @@ namespace Ormongo
 
 		public void UpdateAssociations()
 		{
-			AssociationUtility.UpdateAssociations(this);
+			EmbeddedDocumentUtility.UpdateParentReferences(this);
 		}
 
 		#endregion

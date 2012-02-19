@@ -10,14 +10,14 @@ namespace Ormongo.Internal.Serialization
 		public override object Deserialize(BsonReader bsonReader, Type nominalType, Type actualType, IBsonSerializationOptions options)
 		{
 			object result = BsonClassMapSerializer.Instance.Deserialize(bsonReader, nominalType, actualType, options);
-			AssociationUtility.UpdateAssociations(result);
+			EmbeddedDocumentUtility.UpdateParentReferences(result);
 			return result;
 		}
 
 		public override object Deserialize(BsonReader bsonReader, Type nominalType, IBsonSerializationOptions options)
 		{
 			object result = BsonClassMapSerializer.Instance.Deserialize(bsonReader, nominalType, options);
-			AssociationUtility.UpdateAssociations(result);
+			EmbeddedDocumentUtility.UpdateParentReferences(result);
 			return result;
 		}
 

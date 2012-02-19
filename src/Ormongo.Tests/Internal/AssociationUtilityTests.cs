@@ -15,7 +15,7 @@ namespace Ormongo.Tests.Internal
 
 			// Act.
 			person.Address = address;
-			AssociationUtility.UpdateAssociations(person);
+			EmbeddedDocumentUtility.UpdateParentReferences(person);
 
 			// Assert.
 			Assert.That(address.Parent, Is.EqualTo(person));
@@ -30,7 +30,7 @@ namespace Ormongo.Tests.Internal
 
 			// Act.
 			blogPost.Comments.Add(comment);
-			AssociationUtility.UpdateAssociations(blogPost);
+			EmbeddedDocumentUtility.UpdateParentReferences(blogPost);
 
 			// Assert.
 			Assert.That(comment.Parent, Is.EqualTo(blogPost));

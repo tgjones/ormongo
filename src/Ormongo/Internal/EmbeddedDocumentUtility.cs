@@ -5,14 +5,14 @@ using System.Reflection;
 
 namespace Ormongo.Internal
 {
-	public static class AssociationUtility
+	public static class EmbeddedDocumentUtility
 	{
 		/// <summary>
 		/// Loop through each property of this document,
 		/// and if there are any embedded documents, set
 		/// their parent links to this document.
 		/// </summary>
-		public static void UpdateAssociations(object document)
+		public static void UpdateParentReferences(object document)
 		{
 			var properties = document.GetType()
 				.GetProperties(BindingFlags.Public | BindingFlags.Instance);

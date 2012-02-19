@@ -62,7 +62,7 @@
     <Compile Include="Document.cs" />
     <Compile Include="DocumentEventArgs.cs" />
     <Compile Include="EmbeddedDocumentWithID.cs" />
-    <Compile Include="Internal\AssociationUtility.cs" />
+    <Compile Include="Internal\EmbeddedDocumentUtility.cs" />
     <Compile Include="Internal\ReflectionUtility.cs" />
     <Compile Include="Internal\Serialization\AttachmentSerializer.cs" />
     <Compile Include="Internal\ExpressionUtility.cs" />
@@ -78,7 +78,7 @@
     <Compile Include="Plugins\Ancestry\IAncestryProxy.cs" />
     <Compile Include="Plugins\Ancestry\IHasAncestry.cs" />
     <Compile Include="Plugins\Ancestry\OrphanStrategy.cs" />
-    <Compile Include="Plugins\AssociationPlugin.cs" />
+    <Compile Include="Plugins\EmbeddedDocumentPlugin.cs" />
     <Compile Include="Plugins\IPlugin.cs" />
     <Compile Include="Plugins\PluginBase.cs" />
     <Compile Include="Plugins\PluginManager.cs" />

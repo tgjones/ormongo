@@ -3,7 +3,7 @@ using NUnit.Framework;
 namespace Ormongo.Tests
 {
 	[TestFixture]
-	public class AssociationTests
+	public class EmbeddedDocumentTests
 	{
 		[TearDown]
 		public void TearDown()
@@ -12,7 +12,7 @@ namespace Ormongo.Tests
 		}
 
 		[Test]
-		public void CanManuallyUpdateAssociation()
+		public void CanManuallyUpdateEmbeddedDocumentParentReferences()
 		{
 			// Arrange.
 			var person = new Person
@@ -37,7 +37,7 @@ namespace Ormongo.Tests
 		}
 
 		[Test]
-		public void CanSaveAssociation()
+		public void CanSaveEmbeddedDocument()
 		{
 			// Arrange.
 			var person = new Person
@@ -65,7 +65,7 @@ namespace Ormongo.Tests
 		}
 
 		[Test]
-		public void CanLoadAssociation()
+		public void CanLoadEmbeddedDocument()
 		{
 			// Arrange.
 			var person = new Person
