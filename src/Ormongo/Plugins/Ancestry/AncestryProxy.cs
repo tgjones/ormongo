@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver.Builders;
 using Ormongo.Internal;
 
@@ -115,14 +114,12 @@ namespace Ormongo.Plugins.Ancestry
 
 		#region Parent
 
-		[BsonIgnore]
 		public T Parent
 		{
 			get { return (ParentID == ObjectId.Empty) ? null : Document<T>.FindOneByID(ParentID); }
 			set { Ancestry = (value == null) ? null : GetAncestryProxy(value).ChildAncestry; }
 		}
 
-		[BsonIgnore]
 		public ObjectId ParentID
 		{
 			get { return AncestorIDs.Any() ? AncestorIDs.Last() : ObjectId.Empty; }
@@ -152,9 +149,14 @@ namespace Ormongo.Plugins.Ancestry
 
 		#region Children
 
-		public IQueryable<T> Children
+		public Relation<T> Children
 		{
-			get { return Document<T>.Find(d => d.ExtraData[AncestryKey] == ChildAncestry); }
+			get
+			{
+				return new Relation<T>(
+					Document<T>.Find(d => d.ExtraData[AncestryKey] == ChildAncestry),
+					d => d.ExtraData[AncestryKey] = ChildAncestry);
+			}
 		}
 
 		public IEnumerable<ObjectId> ChildIDs

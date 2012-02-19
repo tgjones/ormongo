@@ -306,5 +306,30 @@ namespace Ormongo.Tests
 			// Assert.
 			Assert.That(BlogPost.GetCollection().IndexExistsByName("Text_1_DatePublished_1"), Is.True);
 		}
+
+		#region Inheritance
+
+		private abstract class Animal : Document<Animal>
+		{
+			
+		}
+
+		private class Dog : Animal
+		{
+			
+		}
+
+		[Test]
+		public void InheritedClassesGetSavedIntoRootClassCollection()
+		{
+			// Act.
+			var dog = Animal.Create(new Dog());
+
+			// Assert.
+			Assert.That(Animal.FindOneByID(dog.ID), Is.Not.Null);
+			Assert.That(Animal.FindOneByID(dog.ID), Is.InstanceOf<Dog>());
+		}
+
+		#endregion
 	}
 }

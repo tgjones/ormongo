@@ -426,6 +426,25 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			Assert.That(childNode.Ancestry.IsChildless, Is.True);
 		}
 
+		[Test]
+		public void CanCreateChildThroughChildrenProperty()
+		{
+			// Arrange.
+			var rootNode = TreeNode.Create(new TreeNode
+			{
+				Name = "Root"
+			});
+
+			// Act.
+			var childNode = rootNode.Ancestry.Children.Create(new TreeNode
+			{
+				Name = "Child1"
+			});
+
+			// Assert.
+			Assert.That(childNode.Ancestry.Parent.ID, Is.EqualTo(rootNode.ID));
+		}
+
 		#endregion
 
 		#region Siblings
