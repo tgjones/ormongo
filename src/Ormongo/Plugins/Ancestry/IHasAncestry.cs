@@ -1,8 +1,7 @@
 ﻿namespace Ormongo.Plugins.Ancestry
 {
-	public interface IHasAncestry<T>
-		where T : Document<T>
+	public interface IHasAncestry
 	{
-		AncestryProxy<T> Ancestry { get; }
+		
 	}
 }

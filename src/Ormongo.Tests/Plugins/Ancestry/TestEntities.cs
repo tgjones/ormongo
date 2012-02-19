@@ -2,7 +2,7 @@ using Ormongo.Plugins.Ancestry;
 
 namespace Ormongo.Tests.Plugins.Ancestry
 {
-	public class TreeNode : Document<TreeNode>, IHasAncestry<TreeNode>
+	public class TreeNode : Document<TreeNode>, IHasAncestry
 	{
 		public string Name { get; set; }
 

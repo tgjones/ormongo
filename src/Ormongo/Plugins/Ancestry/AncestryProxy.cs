@@ -35,7 +35,7 @@ namespace Ormongo.Plugins.Ancestry
 
 		private static AncestryProxy<T> GetAncestryProxy(T instance)
 		{
-			return ((IHasAncestry<T>) instance).Ancestry;
+			return new AncestryProxy<T>(instance);
 		}
 
 		#endregion

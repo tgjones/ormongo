@@ -50,7 +50,7 @@ namespace Ormongo.Plugins.Ancestry
 
 		private static bool HasAncestry(object document)
 		{
-			return document.GetType().GetInterface("IHasAncestry`1") != null;
+			return document.GetType().GetInterface(typeof(IHasAncestry).Name) != null;
 		}
 
 		private static IAncestryProxy GetAncestryProxy(object document)

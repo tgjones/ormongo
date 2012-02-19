@@ -5,7 +5,7 @@ namespace Ormongo.Plugins.Ancestry
 	public static class AncestryExtensions
 	{
 		public static IQueryable<T> Roots<T>(this IQueryable<T> items)
-			where T : Document<T>, IHasAncestry<T>
+			where T : Document<T>, IHasAncestry
 		{
 			return items.Where(d => d.ExtraData[AncestryProxy<T>.AncestryKey] == null);
 		}
