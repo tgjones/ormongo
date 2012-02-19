@@ -793,6 +793,59 @@ namespace Ormongo.Tests.Plugins.Ancestry
 
 		#endregion
 
+		#region Inheritance
+
+		[Test]
+		public void InheritedClassesAreStoredInTheSameCollection()
+		{
+			// Act.
+			var rootNode = TreeNode.Create(new TreeNode
+			{
+				Name = "Root"
+			});
+			var folderNode = TreeNode.Create(new FolderNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child"
+			});
+			TreeNode.Create(new FileNode
+			{
+				Ancestry = { Parent = folderNode },
+				Name = "GrandChild"
+			});
+
+			// Assert.
+			Assert.That(TreeNode.FindAll().ToList(), Has.Count.EqualTo(3));
+		}
+
+		[Test]
+		public void AncestryProxyOperatesOnWholeInheritanceTree()
+		{
+			// Arrange.
+			var rootNode = TreeNode.Create(new TreeNode
+			{
+				Name = "Root"
+			});
+			var folderNode = TreeNode.Create(new FolderNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child"
+			});
+			var fileNode = TreeNode.Create(new FileNode
+			{
+				Ancestry = { Parent = folderNode },
+				Name = "GrandChild"
+			});
+
+			// Act.
+			var root = fileNode.Ancestry.Root;
+
+			// Assert.
+			Assert.That(root.ID, Is.EqualTo(rootNode.ID));
+		}
+
+		#endregion
+
 		#endregion
 	}
 }

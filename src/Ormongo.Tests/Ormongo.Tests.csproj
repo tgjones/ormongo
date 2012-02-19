@@ -70,7 +70,7 @@
     <Compile Include="Plugins\Ancestry\AncestryExtensionsTests.cs" />
     <Compile Include="Plugins\Ancestry\AncestryProxyTests.cs" />
     <Compile Include="Plugins\Ancestry\AncestryTestsBase.cs" />
-    <Compile Include="Plugins\Ancestry\TreeNode.cs" />
+    <Compile Include="Plugins\Ancestry\TestEntities.cs" />
     <Compile Include="TestEntities.cs" />
     <Compile Include="Internal\AssociationUtilityTests.cs" />
     <Compile Include="Internal\ExpressionUtilityTests.cs" />
