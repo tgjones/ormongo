@@ -4,10 +4,10 @@ using Ormongo.Internal;
 namespace Ormongo.Tests.Internal
 {
 	[TestFixture]
-	public class AssociationUtilityTests
+	public class EmbeddedDocumentUtilityTests
 	{
 		[Test]
-		public void CanUpdateAssociationsInProperty()
+		public void CanUpdateParentReferencesInProperty()
 		{
 			// Arrange.
 			var person = new Person();
@@ -22,7 +22,7 @@ namespace Ormongo.Tests.Internal
 		}
 
 		[Test]
-		public void CanUpdateAssociationsInCollection()
+		public void CanUpdateParentReferencesInCollection()
 		{
 			// Arrange.
 			var blogPost = new BlogPost();
