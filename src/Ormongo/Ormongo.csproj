@@ -71,10 +71,6 @@
     <Compile Include="Internal\Serialization\DocumentSerializer.cs" />
     <Compile Include="Internal\Serialization\SerializationProvider.cs" />
     <Compile Include="OrmongoConfiguration.cs" />
-    <Compile Include="Plugins\Ancestry\AncestryExtensions.cs" />
-    <Compile Include="Plugins\Ancestry\AncestryDocument.cs" />
-    <Compile Include="Plugins\Ancestry\OrderedAncestryDocument.cs" />
-    <Compile Include="Plugins\Ancestry\OrphanStrategy.cs" />
     <Compile Include="Plugins\EmbeddedDocumentPlugin.cs" />
     <Compile Include="Plugins\IPlugin.cs" />
     <Compile Include="Plugins\PluginBase.cs" />

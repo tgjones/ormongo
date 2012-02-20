@@ -1,7 +1,6 @@
 using System.Linq;
 using NUnit.Framework;
 using Ormongo.Plugins;
-using Ormongo.Plugins.Ancestry;
 
 namespace Ormongo.Tests.Plugins
 {
