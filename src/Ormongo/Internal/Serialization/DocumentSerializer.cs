@@ -2,7 +2,6 @@ using System;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
-using Ormongo.Plugins;
 
 namespace Ormongo.Internal.Serialization
 {
@@ -11,14 +10,14 @@ namespace Ormongo.Internal.Serialization
 		public override object Deserialize(BsonReader bsonReader, Type nominalType, IBsonSerializationOptions options)
 		{
 			object result = BsonClassMapSerializer.Instance.Deserialize(bsonReader, nominalType, options);
-			PluginManager.Execute(p => p.AfterFind(result));
+			((IDocument)result).AfterFind();
 			return result;
 		}
 
 		public override object Deserialize(BsonReader bsonReader, Type nominalType, Type actualType, IBsonSerializationOptions options)
 		{
 			object result = BsonClassMapSerializer.Instance.Deserialize(bsonReader, nominalType, actualType, options);
-			PluginManager.Execute(p => p.AfterFind(result));
+			((IDocument) result).AfterFind();
 			return result;
 		}
 

@@ -5,17 +5,15 @@ using System.Linq;
 using System.Linq.Expressions;
 using FluentMongo.Linq;
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using MongoDB.Driver.Builders;
 using Ormongo.Internal;
-using Ormongo.Internal.Serialization;
 using Ormongo.Plugins;
 
 namespace Ormongo
 {
-	public class Document<T>
+	public class Document<T> : IDocument
 		where T : Document<T>
 	{
 		#region Static
@@ -60,25 +58,6 @@ namespace Ormongo
 
 		public bool IsDestroyed { get; private set; }
 
-		/// <summary>
-		/// Useful for temporarily storing data that doesn't need to be persisted to the database.
-		/// Some plugins use this to maintain state within the document.
-		/// </summary>
-		[BsonIgnore]
-		public DataDictionary TransientData { get; private set; }
-
-		/// <summary>
-		/// A key/value collection of arbitrary data that doesn't have a strongly-typed
-		/// property accessor.
-		/// </summary>
-		public DataDictionary ExtraData { get; set; }
-
-		public Document()
-		{
-			TransientData = new DataDictionary();
-			ExtraData = new DataDictionary();
-		}
-
 		internal static MongoCollection<T> GetCollection()
 		{
 			string collectionName = typeof (T).Name;
@@ -91,6 +70,16 @@ namespace Ormongo
 		}
 
 		#region Persistence
+
+		protected virtual void AfterFind()
+		{
+			PluginManager.Execute(p => p.AfterFind(this));
+		}
+
+		void IDocument.AfterFind()
+		{
+			AfterFind();
+		}
 
 		public static void Drop()
 		{
@@ -113,8 +102,6 @@ namespace Ormongo
 
 		protected virtual void OnSaved(object sender, DocumentEventArgs<T> args)
 		{
-			TransientData.ResetChangedValues();
-			ExtraData.ResetChangedValues();
 			if (Saved != null)
 				Saved(sender, args);
 		}
@@ -160,20 +147,25 @@ namespace Ormongo
 
 		public void Destroy()
 		{
-			PluginManager.Execute(p => p.BeforeDestroy(this));
+			BeforeDestroy();
 			Delete(ID);
 			IsDestroyed = true;
+			AfterDestroy();
+		}
+
+		protected virtual void BeforeDestroy()
+		{
+			PluginManager.Execute(p => p.BeforeDestroy(this));
+		}
+
+		protected virtual void AfterDestroy()
+		{
 			PluginManager.Execute(p => p.AfterDestroy(this));
 		}
 
 		#endregion
 
 		#region Querying
-
-		public static IQueryable<T> FindNative(IMongoQuery query)
-		{
-			return GetCollection().Find(query).AsQueryable();
-		}
 
 		public static T FindOneByID(ObjectId id)
 		{
@@ -277,30 +269,7 @@ namespace Ormongo
 		public void Inc<TProperty>(Expression<Func<T, TProperty>> expression, int value)
 		{
 			// Change the local value.
-			var memberAccessParameter = expression.Parameters[0];
-
-			var assignmentTarget = expression.Body;
-			var methodCall = expression.Body as MethodCallExpression;
-			if (methodCall != null && typeof(BsonDocument).IsAssignableFrom(methodCall.Object.Type)
-				&& methodCall.Arguments.Count == 1 && methodCall.Arguments[0].NodeType == ExpressionType.Constant
-				&& methodCall.Arguments[0].Type == typeof(string))
-			{
-				var assign1 = Expression.Call(methodCall.Object,
-					methodCall.Object.Type.GetMethod("set_Item", new[] { typeof(string), typeof(BsonValue) }),
-					methodCall.Arguments[0],
-					Expression.Call(null, typeof(BsonValue).GetMethod("Create"), Expression.Convert(Expression.Add(Expression.Convert(expression.Body, typeof(int)), Expression.Constant(value)), typeof(object))));
-				var assign2 = Expression.Lambda<Action<T>>(assign1, memberAccessParameter);
-				assign2.Compile()((T) this);
-			}
-			else
-			{
-				var localAssign1 = Expression.Assign(assignmentTarget,
-					Expression.Add(Expression.Convert(expression.Body, typeof(int)), Expression.Constant(value)));
-				var localAssign2 = Expression.Block(localAssign1);
-				var localAssign3 = Expression.Lambda<Action<T>>(localAssign2, memberAccessParameter);
-				localAssign3.Compile()((T) this);
-			}
-			// sibling.Inc(s => s.ExtraData[PositionKey], (s, v) => s.ExtraData[PositionKey] = (int) s.ExtraData[PositionKey] + v, 1);
+			ExpressionUtility.IncrementPropertyValue((T) this, expression, value);
 
 			// Change the database value.
 			UpdateBuilder update = Update.Inc(ExpressionUtility.GetPropertyName(expression), value);

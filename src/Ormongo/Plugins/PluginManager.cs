@@ -18,7 +18,6 @@ namespace Ormongo.Plugins
 		{
 			yield return new ValidationPlugin();
 			yield return new EmbeddedDocumentPlugin();
-			yield return new AncestryPlugin();
 		}
 
 		public static void Execute(Action<IPlugin> action)

@@ -1,7 +1,6 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
-using MongoDB.Bson;
 
 namespace Ormongo.Internal
 {
@@ -14,15 +13,6 @@ namespace Ormongo.Internal
 
 		private static string GetPropertyNameInternal(LambdaExpression expression)
 		{
-			var methodCall = expression.Body as MethodCallExpression;
-			if (methodCall != null && typeof(BsonDocument).IsAssignableFrom(methodCall.Object.Type) 
-				&& methodCall.Arguments.Count == 1 && methodCall.Arguments[0].NodeType == ExpressionType.Constant
-				&& methodCall.Arguments[0].Type == typeof(string))
-			{
-				return ((MemberExpression) methodCall.Object).Member.Name + "."
-					+ (string) ((ConstantExpression) methodCall.Arguments[0]).Value;
-			}
-
 			var member = expression.Body as MemberExpression;
 			if (member == null)
 				throw new ArgumentException(string.Format(
@@ -74,6 +64,24 @@ namespace Ormongo.Internal
 			value = Expression
 				.Lambda<Func<object>>(Expression.Convert(call, typeof(object)))
 				.Compile()();
+		}
+
+		public static void IncrementPropertyValue<T, TProperty>(T instance, Expression<Func<T, TProperty>> expression, int value)
+		{
+			var member = expression.Body as MemberExpression;
+			if (member == null)
+				throw new ArgumentException(string.Format(
+					"Expression '{0}' refers to a method, not a property.",
+					expression));
+			if (member.Type != typeof(int))
+				throw new ArgumentException(string.Format(
+					"Expression '{0}' does not refer to an integer.",
+					expression));
+
+			var addition = Expression.Add(Expression.Convert(member, typeof(int)), Expression.Constant(value));
+			var assignment = Expression.Block(Expression.Assign(member, addition));
+			var lambda = Expression.Lambda<Action<T>>(assignment, expression.Parameters[0]);
+			lambda.Compile()(instance);
 		}
 	}
 }

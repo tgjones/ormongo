@@ -63,6 +63,7 @@
     <Compile Include="DocumentEventArgs.cs" />
     <Compile Include="EmbeddedDocumentWithID.cs" />
     <Compile Include="Internal\EmbeddedDocumentUtility.cs" />
+    <Compile Include="Internal\IDocument.cs" />
     <Compile Include="Internal\ReflectionUtility.cs" />
     <Compile Include="Internal\Serialization\AttachmentSerializer.cs" />
     <Compile Include="Internal\ExpressionUtility.cs" />
@@ -71,15 +72,9 @@
     <Compile Include="Internal\Serialization\DocumentSerializer.cs" />
     <Compile Include="Internal\Serialization\SerializationProvider.cs" />
     <Compile Include="OrmongoConfiguration.cs" />
-    <Compile Include="Plugins\Ancestry\AncestryAttribute.cs" />
-    <Compile Include="Plugins\Ancestry\AncestryDocument.cs" />
     <Compile Include="Plugins\Ancestry\AncestryExtensions.cs" />
-    <Compile Include="Plugins\Ancestry\AncestryProxy.cs" />
-    <Compile Include="Plugins\Ancestry\AncestryPlugin.cs" />
-    <Compile Include="Plugins\Ancestry\IAncestryProxy.cs" />
-    <Compile Include="Plugins\Ancestry\IHasAncestry.cs" />
-    <Compile Include="Plugins\Ancestry\IOrderingProxy.cs" />
-    <Compile Include="Plugins\Ancestry\OrderingProxy.cs" />
+    <Compile Include="Plugins\Ancestry\AncestryDocument.cs" />
+    <Compile Include="Plugins\Ancestry\OrderedAncestryDocument.cs" />
     <Compile Include="Plugins\Ancestry\OrphanStrategy.cs" />
     <Compile Include="Plugins\EmbeddedDocumentPlugin.cs" />
     <Compile Include="Plugins\IPlugin.cs" />

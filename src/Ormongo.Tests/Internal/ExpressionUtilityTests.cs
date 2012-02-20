@@ -12,7 +12,7 @@ namespace Ormongo.Tests.Internal
 		{
 			public string MyField;
 			public string MyProp { get; set; }
-			public DataDictionary ExtraData { get; set; }
+			public int MyValue { get; set; }
 
 			public string MyMethod()
 			{
@@ -28,16 +28,6 @@ namespace Ormongo.Tests.Internal
 
 			// Assert.
 			Assert.That(name, Is.EqualTo("MyProp"));
-		}
-
-		[Test]
-		public void CanGetPropertyNameFromDataDictionary()
-		{
-			// Act.
-			string name = ExpressionUtility.GetPropertyName<TestClass, BsonValue>(u => u.ExtraData["MyProperty"]);
-
-			// Assert.
-			Assert.That(name, Is.EqualTo("ExtraData.MyProperty"));
 		}
 
 		[Test, ExpectedException(typeof(ArgumentException))]
@@ -152,6 +142,39 @@ namespace Ormongo.Tests.Internal
 			object value;
 			ExpressionUtility.GetPropertyNameAndValue<TestClass>(u => u.MyProp == new string('c', 8),
 				out name, out value);
+		}
+
+		[Test]
+		public void CanIncrementPropertyValue()
+		{
+			// Arrange.
+			var test = new TestClass { MyValue = 3 };
+
+			// Act.
+			ExpressionUtility.IncrementPropertyValue(test, u => u.MyValue, 5);
+
+			// Assert.
+			Assert.That(test.MyValue, Is.EqualTo(8));
+		}
+
+		[Test, ExpectedException(typeof(ArgumentException))]
+		public void IncrementThrowsIfNotIntegerProperty()
+		{
+			// Arrange.
+			var test = new TestClass { MyValue = 3 };
+
+			// Act.
+			ExpressionUtility.IncrementPropertyValue(test, u => u.MyProp, 5);
+		}
+
+		[Test, ExpectedException(typeof(ArgumentException))]
+		public void IncrementThrowsIfNotMemberExpression()
+		{
+			// Arrange.
+			var test = new TestClass { MyValue = 3 };
+
+			// Act.
+			ExpressionUtility.IncrementPropertyValue(test, u => u.MyMethod(), 5);
 		}
 	}
 }

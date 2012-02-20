@@ -15,10 +15,9 @@ namespace Ormongo.Tests.Plugins
 			var plugins = PluginManager.FindPlugins().ToList();
 
 			// Assert.
-			Assert.That(plugins, Has.Count.EqualTo(3));
+			Assert.That(plugins, Has.Count.EqualTo(2));
 			Assert.That(plugins, Has.Some.InstanceOf<EmbeddedDocumentPlugin>());
 			Assert.That(plugins, Has.Some.InstanceOf<ValidationPlugin>());
-			Assert.That(plugins, Has.Some.InstanceOf<AncestryPlugin>());
 		}
 	}
 }

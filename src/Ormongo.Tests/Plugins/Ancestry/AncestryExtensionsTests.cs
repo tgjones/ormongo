@@ -10,24 +10,10 @@ namespace Ormongo.Tests.Plugins.Ancestry
 		public void CanGetRoots()
 		{
 			// Arrange.
-			var rootNode1 = TreeNode.Create(new TreeNode
-			{
-				Name = "Root"
-			});
-			var childNode = TreeNode.Create(new TreeNode
-			{
-				Ancestry = { Parent = rootNode1 },
-				Name = "Child"
-			});
-			TreeNode.Create(new TreeNode
-			{
-				Ancestry = { Parent = childNode },
-				Name = "GrandChild"
-			});
-			var rootNode2 = TreeNode.Create(new TreeNode
-			{
-				Name = "Root"
-			});
+			var rootNode1 = CreateTreeNode(null, "Root1");
+			var childNode = CreateTreeNode(rootNode1, "Child");
+			CreateTreeNode(childNode, "GrandChild");
+			var rootNode2 = CreateTreeNode(null, "Root2");
 
 			// Act.
 			var result = TreeNode.FindAll().Roots().ToList();

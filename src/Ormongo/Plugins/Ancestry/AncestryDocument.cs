@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -8,38 +10,78 @@ namespace Ormongo.Plugins.Ancestry
 	public abstract class AncestryDocument<T> : Document<T>
 		where T : AncestryDocument<T>
 	{
-		private AncestryProxy<T> _ancestry;
+		#region Static configuration
 
-		protected AncestryProxy<T> Ancestry
+		/// <summary>
+		/// Configures what to do with children of a node that is destroyed. Defaults to Destroy.
+		/// </summary>
+		public static OrphanStrategy OrphanStrategy { get; set; }
+
+		/// <summary>
+		/// Cache the depth of each node in the ExtraData.AncestryDepth field. Defaults to false.
+		/// </summary>
+		public static bool CacheDepth { get; set; }
+
+		#endregion
+
+		#region Instance
+
+		private string _ancestry;
+		protected string AncestryWas { get; private set; }
+		protected bool AncestryChanged { get; private set; }
+
+		public string Ancestry
 		{
-			get { return _ancestry ?? (_ancestry = new AncestryProxy<T>((T) this)); }
+			get { return _ancestry; }
+			set
+			{
+				_ancestry = value;
+				AncestryChanged = true;
+			}
+		}
+
+		/// <summary>
+		/// The ancestry value for this record's children
+		/// </summary>
+		internal string ChildAncestry
+		{
+			get
+			{
+				// New records cannot have children
+				if (IsNewRecord)
+					throw new InvalidOperationException("No child ancestry for new record. Save record before performing tree operations.");
+
+				return (string.IsNullOrEmpty(AncestryWas))
+					? ID.ToString()
+					: String.Format("{0}/{1}", AncestryWas, ID);
+			}
 		}
 
 		#region Ancestors
 
 		public IEnumerable<ObjectId> AncestorIDs
 		{
-			get { return Ancestry.AncestorIDs; }
+			get { return (string.IsNullOrEmpty(Ancestry)) ? new List<ObjectId>() : Ancestry.Split('/').Select(ObjectId.Parse); }
 		}
 
 		public IQueryable<T> Ancestors
 		{
-			get { return Ancestry.Ancestors; }
+			get { return Find(d => AncestorIDs.Contains(d.ID)); }
 		}
 
 		public IEnumerable<ObjectId> AncestorsAndSelfIDs
 		{
-			get { return Ancestry.AncestorsAndSelfIDs; }
+			get { return AncestorIDs.Union(new[] { ID }); }
 		}
 
 		public IQueryable<T> AncestorsAndSelf
 		{
-			get { return Ancestry.AncestorsAndSelf; }
+			get { return Find(d => AncestorsAndSelfIDs.Contains(d.ID)); }
 		}
 
 		public int Depth
 		{
-			get { return Ancestry.Depth; }
+			get { return AncestorIDs.Count(); }
 		}
 
 		#endregion
@@ -49,15 +91,15 @@ namespace Ormongo.Plugins.Ancestry
 		[BsonIgnore]
 		public T Parent
 		{
-			get { return Ancestry.Parent; }
-			set { Ancestry.Parent = value; }
+			get { return (ParentID == ObjectId.Empty) ? null : FindOneByID(ParentID); }
+			set { Ancestry = (value == null) ? null : value.ChildAncestry; }
 		}
 
 		[BsonIgnore]
 		public ObjectId ParentID
 		{
-			get { return Ancestry.ParentID; }
-			set { Ancestry.ParentID = value; }
+			get { return AncestorIDs.Any() ? AncestorIDs.Last() : ObjectId.Empty; }
+			set { Parent = (value == ObjectId.Empty) ? null : FindOneByID(value); }
 		}
 
 		#endregion
@@ -66,17 +108,17 @@ namespace Ormongo.Plugins.Ancestry
 
 		public ObjectId RootID
 		{
-			get { return Ancestry.RootID; }
+			get { return AncestorIDs.Any() ? AncestorIDs.First() : ID; }
 		}
 
 		public T Root
 		{
-			get { return Ancestry.Root; }
+			get { return (RootID == ID) ? (T) this : FindOneByID(RootID); }
 		}
 
 		public bool IsRoot
 		{
-			get { return Ancestry.IsRoot; }
+			get { return string.IsNullOrEmpty(Ancestry); }
 		}
 
 		#endregion
@@ -85,22 +127,27 @@ namespace Ormongo.Plugins.Ancestry
 
 		public Relation<T> Children
 		{
-			get { return Ancestry.Children; }
+			get
+			{
+				return new Relation<T>(
+					Find(d => d.Ancestry == ChildAncestry),
+					d => d.Ancestry = ChildAncestry);
+			}
 		}
 
 		public IEnumerable<ObjectId> ChildIDs
 		{
-			get { return Ancestry.ChildIDs; }
+			get { return Children.Select(d => d.ID); }
 		}
 
 		public bool HasChildren
 		{
-			get { return Ancestry.HasChildren; }
+			get { return Children.Any(); }
 		}
 
 		public bool IsChildless
 		{
-			get { return Ancestry.IsChildless; }
+			get { return !HasChildren; }
 		}
 
 		#endregion
@@ -109,52 +156,166 @@ namespace Ormongo.Plugins.Ancestry
 
 		public IQueryable<T> SiblingsAndSelf
 		{
-			get { return Ancestry.SiblingsAndSelf; }
+			get { return Find(d => d.Ancestry == Ancestry); }
 		}
 
 		public IQueryable<T> Siblings
 		{
-			get { return Ancestry.Siblings; }
+			get { return SiblingsAndSelf.Where(d => d.ID != ID); }
 		}
 
 		public IEnumerable<ObjectId> SiblingIDs
 		{
-			get { return Ancestry.SiblingIDs; }
+			get { return Siblings.Select(d => d.ID); }
 		}
 
 		public bool HasSiblings
 		{
-			get { return Ancestry.HasSiblings; }
+			get { return Siblings.Any(); }
 		}
 
 		public bool IsOnlyChild
 		{
-			get { return Ancestry.IsOnlyChild; }
+			get { return !HasSiblings; }
+		}
+
+		/// <summary>
+		/// Is this document a sibling of the other document?
+		/// </summary>
+		/// <param name="other"></param>
+		/// <returns></returns>
+		public bool IsSiblingOf(T other)
+		{
+			return ParentID == other.ParentID;
 		}
 
 		#endregion
 
 		#region Descendants
 
-		public IQueryable<T> DescendantsAndSelf
+		public IEnumerable<T> DescendantsAndSelf
 		{
-			get { return Ancestry.DescendantsAndSelf; }
+			get { return Find(d => d.ID == ID || d.Ancestry.StartsWith(ChildAncestry) || d.Ancestry == ChildAncestry); }
 		}
 
 		public IEnumerable<ObjectId> DescendantsAndSelfIDs
 		{
-			get { return Ancestry.DescendantsAndSelfIDs; }
+			get { return DescendantsAndSelf.Select(d => d.ID); }
 		}
 
-		public IQueryable<T> Descendants
+		public IEnumerable<T> Descendants
 		{
-			get { return Ancestry.Descendants; }
+			get { return Find(d => d.Ancestry.StartsWith(ChildAncestry) || d.Ancestry == ChildAncestry); }
 		}
 
 		public IEnumerable<ObjectId> DescendantIDs
 		{
-			get { return Ancestry.DescendantIDs; }
+			get { return Descendants.Select(d => d.ID); }
 		}
+
+		#endregion
+
+		#region Callbacks
+
+		protected override void AfterFind()
+		{
+			AncestryWas = _ancestry;
+			base.AfterFind();
+		}
+
+		protected override void OnSaving(object sender, DocumentEventArgs<T> args)
+		{
+			UpdateDescendantsWithNewAncestry();
+			base.OnSaving(sender, args);
+		}
+
+		protected override void OnSaved(object sender, DocumentEventArgs<T> args)
+		{
+			AncestryWas = _ancestry;
+			AncestryChanged = false;
+			base.OnSaved(sender, args);
+		}
+
+		protected override void BeforeDestroy()
+		{
+			ApplyOrphanStrategy();
+			base.BeforeDestroy();
+		}
+
+		private bool _disableAncestryCallbacks;
+		private void WithoutAncestryCallbacks(Action callback)
+		{
+			_disableAncestryCallbacks = true;
+			callback();
+			_disableAncestryCallbacks = false;
+		}
+
+		private void UpdateDescendantsWithNewAncestry()
+		{
+			// Skip this if callbacks are disabled.
+			if (_disableAncestryCallbacks)
+				return;
+
+			// Skip this if it's a new record or ancestry wasn't updated.
+			if (IsNewRecord || !AncestryChanged)
+				return;
+
+			// For each descendant...
+			foreach (var descendant in Descendants)
+			{
+				// Replace old ancestry with new ancestry.
+				descendant.WithoutAncestryCallbacks(() =>
+				{
+					string forReplace = (String.IsNullOrEmpty(Ancestry))
+						? ID.ToString()
+						: String.Format("{0}/{1}", Ancestry, ID);
+					string newAncestry = Regex.Replace(descendant.Ancestry, "^" + ChildAncestry, forReplace);
+					descendant.Ancestry = newAncestry;
+					descendant.Save();
+				});
+			}
+		}
+
+		private void ApplyOrphanStrategy()
+		{
+			// Skip this if callbacks are disabled.
+			if (_disableAncestryCallbacks)
+				return;
+
+			// Skip this if it's a new record.
+			if (IsNewRecord)
+				return;
+
+			switch (OrphanStrategy)
+			{
+				case OrphanStrategy.Destroy:
+					foreach (var descendant in Descendants)
+						descendant.WithoutAncestryCallbacks(() => descendant.Destroy());
+					break;
+				case OrphanStrategy.Rootify:
+					foreach (var descendant in Descendants)
+					{
+						descendant.WithoutAncestryCallbacks(() =>
+						{
+							string val = null;
+							if (descendant.Ancestry != ChildAncestry)
+								val = Regex.Replace(descendant.Ancestry, "^" + ChildAncestry + "/", string.Empty);
+							descendant.Ancestry = val;
+							descendant.Save();
+						});
+					}
+					break;
+				case OrphanStrategy.Restrict:
+					if (HasChildren)
+						throw new InvalidOperationException("Cannot delete record because it has descendants");
+					break;
+				default:
+					throw new ArgumentOutOfRangeException("orphanStrategy");
+			}
+
+		}
+
+		#endregion
 
 		#endregion
 	}

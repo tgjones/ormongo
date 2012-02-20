@@ -68,9 +68,9 @@
     <Compile Include="Internal\ReflectionUtilityTests.cs" />
     <Compile Include="OrmongoConfigurationTests.cs" />
     <Compile Include="Plugins\Ancestry\AncestryExtensionsTests.cs" />
-    <Compile Include="Plugins\Ancestry\AncestryProxyTests.cs" />
+    <Compile Include="Plugins\Ancestry\AncestryDocumentTests.cs" />
     <Compile Include="Plugins\Ancestry\AncestryTestsBase.cs" />
-    <Compile Include="Plugins\Ancestry\OrderingProxyTests.cs" />
+    <Compile Include="Plugins\Ancestry\OrderedAncestryDocumentTests.cs" />
     <Compile Include="Plugins\Ancestry\TestEntities.cs" />
     <Compile Include="TestEntities.cs" />
     <Compile Include="Internal\EmbeddedDocumentUtilityTests.cs" />

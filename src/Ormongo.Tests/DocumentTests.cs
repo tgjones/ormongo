@@ -52,46 +52,6 @@ namespace Ormongo.Tests
 		}
 
 		[Test]
-		public void TransientDataIsNotSaved()
-		{
-			// Arrange.
-			BlogPost post = BlogPost.Create(new BlogPost
-			{
-				DatePublished = DateTime.Now,
-				Title = "My Blog Post",
-				Text = "Some text"
-			});
-			post.TransientData["Hello"] = "World";
-			post.Save();
-
-			// Act.
-			BlogPost retrievedPost = BlogPost.FindOneByID(post.ID);
-
-			// Assert.
-			Assert.That(retrievedPost.TransientData, Is.Empty);
-		}
-
-		[Test]
-		public void ExtraDataIsSaved()
-		{
-			// Arrange.
-			BlogPost post = BlogPost.Create(new BlogPost
-			{
-				DatePublished = DateTime.Now,
-				Title = "My Blog Post",
-				Text = "Some text"
-			});
-			post.ExtraData["Hello"] = "World";
-			post.Save();
-
-			// Act.
-			BlogPost retrievedPost = BlogPost.FindOneByID(post.ID);
-
-			// Assert.
-			Assert.That(retrievedPost.ExtraData.SafeGet<string>("Hello"), Is.EqualTo("World"));
-		}
-
-		[Test]
 		public void CanCreateNewBlogPost()
 		{
 			// Act.
@@ -298,22 +258,6 @@ namespace Ormongo.Tests
 			// Assert.
 			Assert.That(post.ReadCount, Is.EqualTo(4));
 			Assert.That(BlogPost.FindOneByID(post.ID).ReadCount, Is.EqualTo(4));
-		}
-
-		[Test]
-		public void IncUpdatesDatabaseAndLocalValuesInsideDataDictionary()
-		{
-			// Arrange.
-			BlogPost post = CreateBlogPost();
-			post.ExtraData["MyProp"] = 3;
-			post.Save();
-
-			// Act.
-			post.Inc(p => p.ExtraData["MyProp"], 1);
-
-			// Assert.
-			Assert.That(post.ExtraData["MyProp"].AsInt32, Is.EqualTo(4));
-			Assert.That(BlogPost.FindOneByID(post.ID).ExtraData["MyProp"].AsInt32, Is.EqualTo(4));
 		}
 
 		#endregion
