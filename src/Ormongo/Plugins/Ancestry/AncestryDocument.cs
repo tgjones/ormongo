@@ -27,12 +27,12 @@ namespace Ormongo.Plugins.Ancestry
 			get { return Ancestry.Ancestors; }
 		}
 
-		public IEnumerable<ObjectId> PathIDs
+		public IEnumerable<ObjectId> AncestorsAndSelfIDs
 		{
 			get { return Ancestry.AncestorsAndSelfIDs; }
 		}
 
-		public IQueryable<T> Path
+		public IQueryable<T> AncestorsAndSelf
 		{
 			get { return Ancestry.AncestorsAndSelf; }
 		}
@@ -107,6 +107,11 @@ namespace Ormongo.Plugins.Ancestry
 
 		#region Siblings
 
+		public IQueryable<T> SiblingsAndSelf
+		{
+			get { return Ancestry.SiblingsAndSelf; }
+		}
+
 		public IQueryable<T> Siblings
 		{
 			get { return Ancestry.Siblings; }
@@ -131,6 +136,16 @@ namespace Ormongo.Plugins.Ancestry
 
 		#region Descendants
 
+		public IQueryable<T> DescendantsAndSelf
+		{
+			get { return Ancestry.DescendantsAndSelf; }
+		}
+
+		public IEnumerable<ObjectId> DescendantsAndSelfIDs
+		{
+			get { return Ancestry.DescendantsAndSelfIDs; }
+		}
+
 		public IQueryable<T> Descendants
 		{
 			get { return Ancestry.Descendants; }
@@ -139,20 +154,6 @@ namespace Ormongo.Plugins.Ancestry
 		public IEnumerable<ObjectId> DescendantIDs
 		{
 			get { return Ancestry.DescendantIDs; }
-		}
-
-		#endregion
-
-		#region DescendantsAndSelf
-
-		public IQueryable<T> Subtree
-		{
-			get { return Ancestry.DescendantsAndSelf; }
-		}
-
-		public IEnumerable<ObjectId> SubtreeIDs
-		{
-			get { return Ancestry.DescendantsAndSelfIDs; }
 		}
 
 		#endregion
