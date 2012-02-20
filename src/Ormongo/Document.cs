@@ -276,6 +276,33 @@ namespace Ormongo
 
 		public void Inc<TProperty>(Expression<Func<T, TProperty>> expression, int value)
 		{
+			// Change the local value.
+			var memberAccessParameter = expression.Parameters[0];
+
+			var assignmentTarget = expression.Body;
+			var methodCall = expression.Body as MethodCallExpression;
+			if (methodCall != null && typeof(BsonDocument).IsAssignableFrom(methodCall.Object.Type)
+				&& methodCall.Arguments.Count == 1 && methodCall.Arguments[0].NodeType == ExpressionType.Constant
+				&& methodCall.Arguments[0].Type == typeof(string))
+			{
+				var assign1 = Expression.Call(methodCall.Object,
+					methodCall.Object.Type.GetMethod("set_Item", new[] { typeof(string), typeof(BsonValue) }),
+					methodCall.Arguments[0],
+					Expression.Call(null, typeof(BsonValue).GetMethod("Create"), Expression.Convert(Expression.Add(Expression.Convert(expression.Body, typeof(int)), Expression.Constant(value)), typeof(object))));
+				var assign2 = Expression.Lambda<Action<T>>(assign1, memberAccessParameter);
+				assign2.Compile()((T) this);
+			}
+			else
+			{
+				var localAssign1 = Expression.Assign(assignmentTarget,
+					Expression.Add(Expression.Convert(expression.Body, typeof(int)), Expression.Constant(value)));
+				var localAssign2 = Expression.Block(localAssign1);
+				var localAssign3 = Expression.Lambda<Action<T>>(localAssign2, memberAccessParameter);
+				localAssign3.Compile()((T) this);
+			}
+			// sibling.Inc(s => s.ExtraData[PositionKey], (s, v) => s.ExtraData[PositionKey] = (int) s.ExtraData[PositionKey] + v, 1);
+
+			// Change the database value.
 			UpdateBuilder update = Update.Inc(ExpressionUtility.GetPropertyName(expression), value);
 			GetCollection().Update(GetIDQuery(ID), update);
 		}

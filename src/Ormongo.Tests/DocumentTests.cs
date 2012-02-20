@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Linq.Expressions;
 using FluentMongo.Linq;
 using MongoDB.Bson;
 using NUnit.Framework;
@@ -103,6 +104,20 @@ namespace Ormongo.Tests
 
 			// Assert.
 			Assert.That(post.ID, Is.Not.EqualTo(ObjectId.Empty));
+		}
+
+		[Test]
+		public void CanDestroyBlogPost()
+		{
+			// Arrange.
+			BlogPost post = CreateBlogPost();
+			post.Save();
+
+			// Act.
+			post.Destroy();
+
+			// Assert.
+			Assert.That(post.IsDestroyed, Is.True);
 		}
 
 		[Test]
@@ -226,6 +241,8 @@ namespace Ormongo.Tests
 			Assert.That(matchingPosts.Count, Is.EqualTo(1));
 		}
 
+		#region Atomic
+
 		[Test]
 		public void CanPushComment()
 		{
@@ -266,6 +283,40 @@ namespace Ormongo.Tests
 			BlogPost myPost = BlogPost.FindOneByID(post.ID);
 			Assert.That(myPost.Comments.Count, Is.EqualTo(0));
 		}
+
+		[Test]
+		public void IncUpdatesDatabaseAndLocalValuesForSimpleProperty()
+		{
+			// Arrange.
+			BlogPost post = CreateBlogPost();
+			post.ReadCount = 3;
+			post.Save();
+
+			// Act.
+			post.Inc(p => p.ReadCount, 1);
+
+			// Assert.
+			Assert.That(post.ReadCount, Is.EqualTo(4));
+			Assert.That(BlogPost.FindOneByID(post.ID).ReadCount, Is.EqualTo(4));
+		}
+
+		[Test]
+		public void IncUpdatesDatabaseAndLocalValuesInsideDataDictionary()
+		{
+			// Arrange.
+			BlogPost post = CreateBlogPost();
+			post.ExtraData["MyProp"] = 3;
+			post.Save();
+
+			// Act.
+			post.Inc(p => p.ExtraData["MyProp"], 1);
+
+			// Assert.
+			Assert.That(post.ExtraData["MyProp"].AsInt32, Is.EqualTo(4));
+			Assert.That(BlogPost.FindOneByID(post.ID).ExtraData["MyProp"].AsInt32, Is.EqualTo(4));
+		}
+
+		#endregion
 
 		[Test]
 		public void CanSaveNewBlogPost()

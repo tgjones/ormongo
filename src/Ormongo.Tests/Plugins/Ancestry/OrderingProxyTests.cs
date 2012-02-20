@@ -192,6 +192,8 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			{
 				Name = "Root"
 			});
+			
+			// Act.
 			var childNode1 = TreeNode.Create(new TreeNode
 			{
 				Ancestry = { Parent = rootNode },
@@ -202,8 +204,6 @@ namespace Ormongo.Tests.Plugins.Ancestry
 				Ancestry = { Parent = rootNode },
 				Name = "Child2"
 			});
-
-			// Act.
 			var childNode3 = TreeNode.Create(new TreeNode
 			{
 				Ancestry = { Parent = rootNode },
@@ -211,6 +211,8 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 
 			// Assert.
+			Assert.That(childNode1.Ordering.Position, Is.EqualTo(0));
+			Assert.That(childNode2.Ordering.Position, Is.EqualTo(1));
 			Assert.That(childNode3.Ordering.Position, Is.EqualTo(2));
 		}
 
@@ -232,6 +234,38 @@ namespace Ormongo.Tests.Plugins.Ancestry
 
 			// Assert.
 			Assert.That(childNode.Ordering.Position, Is.EqualTo(0));
+		}
+
+		[Test]
+		public void LowerSiblingsAreMovedUpAfterDestroy()
+		{
+			// Arrange.
+			var rootNode = TreeNode.Create(new TreeNode
+			{
+				Name = "Root"
+			});
+			var childNode1 = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child1"
+			});
+			var childNode2 = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child2"
+			});
+			var childNode3 = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child3"
+			});
+
+			// Act.
+			childNode1.Destroy();
+
+			// Assert.
+			Assert.That(childNode2.Ordering.Position, Is.EqualTo(0));
+			Assert.That(childNode3.Ordering.Position, Is.EqualTo(1));
 		}
 
 		#endregion
