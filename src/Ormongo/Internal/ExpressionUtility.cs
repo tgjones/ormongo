@@ -1,6 +1,7 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using MongoDB.Bson;
 
 namespace Ormongo.Internal
 {
@@ -13,6 +14,15 @@ namespace Ormongo.Internal
 
 		private static string GetPropertyNameInternal(LambdaExpression expression)
 		{
+			var methodCall = expression.Body as MethodCallExpression;
+			if (methodCall != null && typeof(BsonDocument).IsAssignableFrom(methodCall.Object.Type) 
+				&& methodCall.Arguments.Count == 1 && methodCall.Arguments[0].NodeType == ExpressionType.Constant
+				&& methodCall.Arguments[0].Type == typeof(string))
+			{
+				return ((MemberExpression) methodCall.Object).Member.Name + "."
+					+ (string) ((ConstantExpression) methodCall.Arguments[0]).Value;
+			}
+
 			var member = expression.Body as MemberExpression;
 			if (member == null)
 				throw new ArgumentException(string.Format(

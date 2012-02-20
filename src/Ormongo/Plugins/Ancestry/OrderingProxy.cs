@@ -7,13 +7,22 @@ namespace Ormongo.Plugins.Ancestry
 	{
 		internal const string PositionKey = "Position";
 
+		private readonly T _instance;
+		private readonly AncestryProxy<T> _ancestry;
+
+		#region Static
+
 		static OrderingProxy()
 		{
 			Document<T>.DefaultScope = items => items.OrderBy(d => d.ExtraData[PositionKey]);
 		}
 
-		private readonly T _instance;
-		private readonly AncestryProxy<T> _ancestry;
+		internal static OrderingProxy<T> ProxyFor(T instance)
+		{
+			return new OrderingProxy<T>(instance);
+		}
+
+		#endregion
 
 		public OrderingProxy(T instance)
 		{
@@ -59,6 +68,108 @@ namespace Ormongo.Plugins.Ancestry
 		public T HighestSibling
 		{
 			get { return _ancestry.SiblingsAndSelf.First(); }
+		}
+
+		/// <summary>
+		/// Is this the highest sibling?
+		/// </summary>
+		public bool AtTop
+		{
+			get { return !HigherSiblings.Any(); }
+		}
+
+		/// <summary>
+		/// Is this the lowest sibling?
+		/// </summary>
+		public bool AtBottom
+		{
+			get { return !LowerSiblings.Any(); }
+		}
+
+		/// <summary>
+		/// Moves this node above all its siblings.
+		/// </summary>
+		public void MoveToTop()
+		{
+			if (AtTop)
+				return;
+			MoveAbove(HighestSibling);
+		}
+
+		/// <summary>
+		/// Moves this node below all its siblings.
+		/// </summary>
+		public void MoveToBottom()
+		{
+			if (AtBottom)
+				return;
+			MoveBelow(HighestSibling);
+		}
+
+		/// <summary>
+		/// Moves this node above the specified node. 
+		/// Changes the node's parent if necessary.
+		/// </summary>
+		/// <param name="other"></param>
+		public void MoveAbove(T other)
+		{
+			if (!_ancestry.IsSiblingOf(other))
+			{
+				_ancestry.ParentID = AncestryProxy<T>.ProxyFor(other).ParentID;
+				_instance.Save();
+			}
+
+			var otherProxy = ProxyFor(other);
+			if (Position > otherProxy.Position)
+			{
+				int newPosition = otherProxy.Position;
+				foreach (var sibling in otherProxy.LowerSiblings.Where(d => d.ExtraData[PositionKey] < Position))
+					sibling.Inc(s => s.ExtraData[PositionKey], 1);
+				other.Inc(s => s.ExtraData[PositionKey], 1);
+				Position = newPosition;
+				_instance.Save();
+			}
+			else
+			{
+				int newPosition = otherProxy.Position - 1;
+				foreach (var sibling in otherProxy.HigherSiblings.Where(d => d.ExtraData[PositionKey] > Position))
+					sibling.Inc(s => s.ExtraData[PositionKey], -1);
+				Position = newPosition;
+				_instance.Save();
+			}
+		}
+
+		/// <summary>
+		/// Moves this node below the specified node.
+		/// Changes the node's parent if necessary.
+		/// </summary>
+		/// <param name="other"></param>
+		public void MoveBelow(T other)
+		{
+			if (!_ancestry.IsSiblingOf(other))
+			{
+				_ancestry.ParentID = AncestryProxy<T>.ProxyFor(other).ParentID;
+				_instance.Save();
+			}
+
+			var otherProxy = ProxyFor(other);
+			if (Position > otherProxy.Position)
+			{
+				int newPosition = otherProxy.Position + 1;
+				foreach (var sibling in otherProxy.LowerSiblings.Where(d => d.ExtraData[PositionKey] < Position))
+					sibling.Inc(s => s.ExtraData[PositionKey], 1);
+				Position = newPosition;
+				_instance.Save();
+			}
+			else
+			{
+				int newPosition = otherProxy.Position;
+				foreach (var sibling in otherProxy.HigherSiblings.Where(d => d.ExtraData[PositionKey] > Position))
+					sibling.Inc(s => s.ExtraData[PositionKey], -1);
+				other.Inc(s => s.ExtraData[PositionKey], 1);
+				Position = newPosition;
+				_instance.Save();
+			}
 		}
 	}
 }

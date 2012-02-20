@@ -264,6 +264,12 @@ namespace Ormongo
 			GetCollection().Update(GetIDQuery(id), update);
 		}
 
+		public void Inc<TProperty>(Expression<Func<T, TProperty>> expression, int value)
+		{
+			UpdateBuilder update = Update.Inc(ExpressionUtility.GetPropertyName(expression), value);
+			GetCollection().Update(GetIDQuery(ID), update);
+		}
+
 		#endregion
 
 		#region Associations

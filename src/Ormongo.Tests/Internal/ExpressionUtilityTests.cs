@@ -1,4 +1,5 @@
 using System;
+using MongoDB.Bson;
 using NUnit.Framework;
 using Ormongo.Internal;
 
@@ -10,8 +11,8 @@ namespace Ormongo.Tests.Internal
 		private class TestClass
 		{
 			public string MyField;
-
 			public string MyProp { get; set; }
+			public DataDictionary ExtraData { get; set; }
 
 			public string MyMethod()
 			{
@@ -27,6 +28,16 @@ namespace Ormongo.Tests.Internal
 
 			// Assert.
 			Assert.That(name, Is.EqualTo("MyProp"));
+		}
+
+		[Test]
+		public void CanGetPropertyNameFromDataDictionary()
+		{
+			// Act.
+			string name = ExpressionUtility.GetPropertyName<TestClass, BsonValue>(u => u.ExtraData["MyProperty"]);
+
+			// Assert.
+			Assert.That(name, Is.EqualTo("ExtraData.MyProperty"));
 		}
 
 		[Test, ExpectedException(typeof(ArgumentException))]

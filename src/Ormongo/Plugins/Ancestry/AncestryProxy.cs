@@ -32,7 +32,7 @@ namespace Ormongo.Plugins.Ancestry
 
 		#region Static
 
-		private static AncestryProxy<T> GetAncestryProxy(T instance)
+		internal static AncestryProxy<T> ProxyFor(T instance)
 		{
 			return new AncestryProxy<T>(instance);
 		}
@@ -117,7 +117,7 @@ namespace Ormongo.Plugins.Ancestry
 		public T Parent
 		{
 			get { return (ParentID == ObjectId.Empty) ? null : Document<T>.FindOneByID(ParentID); }
-			set { Ancestry = (value == null) ? null : GetAncestryProxy(value).ChildAncestry; }
+			set { Ancestry = (value == null) ? null : ProxyFor(value).ChildAncestry; }
 		}
 
 		public ObjectId ParentID
@@ -203,6 +203,16 @@ namespace Ormongo.Plugins.Ancestry
 			get { return !HasSiblings; }
 		}
 
+		/// <summary>
+		/// Is this document a sibling of the other document?
+		/// </summary>
+		/// <param name="other"></param>
+		/// <returns></returns>
+		public bool IsSiblingOf(T other)
+		{
+			return ParentID == ProxyFor(other).ParentID;
+		}
+
 		#endregion
 
 		#region Descendants
@@ -268,7 +278,7 @@ namespace Ormongo.Plugins.Ancestry
 			foreach (var descendant in Descendants)
 			{
 				// Replace old ancestry with new ancestry.
-				GetAncestryProxy(descendant).WithoutAncestryCallbacks(() =>
+				ProxyFor(descendant).WithoutAncestryCallbacks(() =>
 				{
 					string forReplace = (String.IsNullOrEmpty(Ancestry))
 						? _instance.ID.ToString()
@@ -294,12 +304,12 @@ namespace Ormongo.Plugins.Ancestry
 			{
 				case OrphanStrategy.Destroy:
 					foreach (var descendant in Descendants)
-						GetAncestryProxy(descendant).WithoutAncestryCallbacks(() => descendant.Destroy());
+						ProxyFor(descendant).WithoutAncestryCallbacks(() => descendant.Destroy());
 					break;
 				case OrphanStrategy.Rootify:
 					foreach (var descendant in Descendants)
 					{
-						var descendantProxy = GetAncestryProxy(descendant);
+						var descendantProxy = ProxyFor(descendant);
 						descendantProxy.WithoutAncestryCallbacks(() =>
 						{
 							string val = null;
