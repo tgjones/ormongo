@@ -213,7 +213,7 @@ namespace Ormongo.Plugins.Ancestry
 			if (!_ancestry.Siblings.Any() || !_ancestry.Siblings.Select(s => s.ExtraData[PositionKey]).Select(p => p != null).Any())
 				Position = 0;
 			else
-				Position = _ancestry.Siblings.Max(s => (int) s.ExtraData[PositionKey]) + 1;
+				Position = _ancestry.Siblings.ToList().Select(s => s.ExtraData[PositionKey].AsInt32).Max() + 1;
 		}
 
 		#endregion

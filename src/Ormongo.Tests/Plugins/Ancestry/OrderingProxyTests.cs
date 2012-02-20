@@ -181,5 +181,59 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			Assert.That(children[1].ID, Is.EqualTo(childNode1.ID));
 			Assert.That(children[2].ID, Is.EqualTo(childNode2.ID));
 		}
+
+		#region Callbacks
+
+		[Test]
+		public void SetsDefaultPosition()
+		{
+			// Arrange.
+			var rootNode = TreeNode.Create(new TreeNode
+			{
+				Name = "Root"
+			});
+			var childNode1 = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child1"
+			});
+			var childNode2 = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child2"
+			});
+
+			// Act.
+			var childNode3 = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child3"
+			});
+
+			// Assert.
+			Assert.That(childNode3.Ordering.Position, Is.EqualTo(2));
+		}
+
+		[Test]
+		public void SetsDefaultPositionWithNoSiblings()
+		{
+			// Arrange.
+			var rootNode = TreeNode.Create(new TreeNode
+			{
+				Name = "Root"
+			});
+
+			// Act.
+			var childNode = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child"
+			});
+
+			// Assert.
+			Assert.That(childNode.Ordering.Position, Is.EqualTo(0));
+		}
+
+		#endregion
 	}
 }
