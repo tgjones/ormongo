@@ -172,7 +172,7 @@ namespace Ormongo
 
 		public static IQueryable<T> FindNative(IMongoQuery query)
 		{
-			return ApplyDefaultScope(GetCollection().Find(query).AsQueryable());
+			return GetCollection().Find(query).AsQueryable();
 		}
 
 		public static T FindOneByID(ObjectId id)

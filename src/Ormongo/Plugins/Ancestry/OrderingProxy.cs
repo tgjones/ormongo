@@ -30,9 +30,9 @@ namespace Ormongo.Plugins.Ancestry
 			_ancestry = new AncestryProxy<T>(instance);
 		}
 
-		private string PositionWas
+		private int PositionWas
 		{
-			get { return _instance.ExtraData.SafeGetWas<string>(PositionKey); }
+			get { return _instance.ExtraData.SafeGetWas<int>(PositionKey); }
 		}
 
 		private bool HasPosition
@@ -210,10 +210,10 @@ namespace Ormongo.Plugins.Ancestry
 			if (HasPosition && !_ancestry.AncestryChanged)
 				return;
 
-			if (!_ancestry.Siblings.Any() || !_ancestry.Siblings.Select(s => s.ExtraData[PositionKey]).Select(p => p != null).Any())
+			if (!_ancestry.Siblings.Any() || !_ancestry.Siblings.ToList().Any(s => s.ExtraData.Contains(PositionKey)))
 				Position = 0;
 			else
-				Position = _ancestry.Siblings.ToList().Select(s => s.ExtraData[PositionKey].AsInt32).Max() + 1;
+				Position = _ancestry.Siblings.ToList().Max(s => s.ExtraData.SafeGet<int>(PositionKey)) + 1;
 		}
 
 		#endregion
