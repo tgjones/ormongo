@@ -264,14 +264,15 @@ namespace Ormongo.Plugins.Ancestry
 			foreach (var descendant in Descendants)
 			{
 				// Replace old ancestry with new ancestry.
+				var copyOfDescendant = descendant;
 				descendant.WithoutAncestryCallbacks(() =>
 				{
 					string forReplace = (String.IsNullOrEmpty(Ancestry))
 						? ID.ToString()
 						: String.Format("{0}/{1}", Ancestry, ID);
-					string newAncestry = Regex.Replace(descendant.Ancestry, "^" + ChildAncestry, forReplace);
-					descendant.Ancestry = newAncestry;
-					descendant.Save();
+					string newAncestry = Regex.Replace(copyOfDescendant.Ancestry, "^" + ChildAncestry, forReplace);
+					copyOfDescendant.Ancestry = newAncestry;
+					copyOfDescendant.Save();
 				});
 			}
 		}
@@ -290,18 +291,19 @@ namespace Ormongo.Plugins.Ancestry
 			{
 				case OrphanStrategy.Destroy:
 					foreach (var descendant in Descendants)
-						descendant.WithoutAncestryCallbacks(() => descendant.Destroy());
+						descendant.WithoutAncestryCallbacks(descendant.Destroy);
 					break;
 				case OrphanStrategy.Rootify:
 					foreach (var descendant in Descendants)
 					{
+						var copyOfDescendant = descendant;
 						descendant.WithoutAncestryCallbacks(() =>
 						{
 							string val = null;
-							if (descendant.Ancestry != ChildAncestry)
-								val = Regex.Replace(descendant.Ancestry, "^" + ChildAncestry + "/", string.Empty);
-							descendant.Ancestry = val;
-							descendant.Save();
+							if (copyOfDescendant.Ancestry != ChildAncestry)
+								val = Regex.Replace(copyOfDescendant.Ancestry, "^" + ChildAncestry + "/", string.Empty);
+							copyOfDescendant.Ancestry = val;
+							copyOfDescendant.Save();
 						});
 					}
 					break;
@@ -310,7 +312,7 @@ namespace Ormongo.Plugins.Ancestry
 						throw new InvalidOperationException("Cannot delete record because it has descendants");
 					break;
 				default:
-					throw new ArgumentOutOfRangeException("orphanStrategy");
+					throw new ArgumentOutOfRangeException();
 			}
 
 		}
