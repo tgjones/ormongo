@@ -450,6 +450,40 @@ namespace Ormongo.Tests.Plugins.Ancestry
 		#region Siblings
 
 		[Test]
+		public void CanGetSiblingsAndSelf()
+		{
+			// Arrange.
+			var rootNode = TreeNode.Create(new TreeNode
+			{
+				Name = "Root"
+			});
+			var childNode1 = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child1"
+			});
+			var childNode2 = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child2"
+			});
+			var childNode3 = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child3"
+			});
+
+			// Act.
+			var siblings = childNode1.Ancestry.SiblingsAndSelf.ToList();
+
+			// Assert.
+			Assert.That(siblings, Has.Count.EqualTo(3));
+			Assert.That(siblings[0].ID, Is.EqualTo(childNode1.ID));
+			Assert.That(siblings[1].ID, Is.EqualTo(childNode2.ID));
+			Assert.That(siblings[2].ID, Is.EqualTo(childNode3.ID));
+		}
+
+		[Test]
 		public void CanGetSiblings()
 		{
 			// Arrange.
@@ -477,10 +511,9 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			var siblings = childNode1.Ancestry.Siblings.ToList();
 
 			// Assert.
-			Assert.That(siblings, Has.Count.EqualTo(3));
-			Assert.That(siblings[0].ID, Is.EqualTo(childNode1.ID));
-			Assert.That(siblings[1].ID, Is.EqualTo(childNode2.ID));
-			Assert.That(siblings[2].ID, Is.EqualTo(childNode3.ID));
+			Assert.That(siblings, Has.Count.EqualTo(2));
+			Assert.That(siblings[0].ID, Is.EqualTo(childNode2.ID));
+			Assert.That(siblings[1].ID, Is.EqualTo(childNode3.ID));
 		}
 
 		[Test]
@@ -511,10 +544,9 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			var siblingIDs = childNode1.Ancestry.SiblingIDs.ToList();
 
 			// Assert.
-			Assert.That(siblingIDs, Has.Count.EqualTo(3));
-			Assert.That(siblingIDs[0], Is.EqualTo(childNode1.ID));
-			Assert.That(siblingIDs[1], Is.EqualTo(childNode2.ID));
-			Assert.That(siblingIDs[2], Is.EqualTo(childNode3.ID));
+			Assert.That(siblingIDs, Has.Count.EqualTo(2));
+			Assert.That(siblingIDs[0], Is.EqualTo(childNode2.ID));
+			Assert.That(siblingIDs[1], Is.EqualTo(childNode3.ID));
 		}
 
 		[Test]

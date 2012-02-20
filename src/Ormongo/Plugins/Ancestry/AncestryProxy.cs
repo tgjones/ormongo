@@ -178,9 +178,14 @@ namespace Ormongo.Plugins.Ancestry
 
 		#region Siblings
 
-		public IQueryable<T> Siblings
+		public IQueryable<T> SiblingsAndSelf
 		{
 			get { return Document<T>.Find(d => d.ExtraData[AncestryKey] == Ancestry); }
+		}
+
+		public IQueryable<T> Siblings
+		{
+			get { return SiblingsAndSelf.Where(d => d.ID != _instance.ID); }
 		}
 
 		public IEnumerable<ObjectId> SiblingIDs
@@ -190,7 +195,7 @@ namespace Ormongo.Plugins.Ancestry
 
 		public bool HasSiblings
 		{
-			get { return Siblings.Count() > 1; }
+			get { return Siblings.Any(); }
 		}
 
 		public bool IsOnlyChild

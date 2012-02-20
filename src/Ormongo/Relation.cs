@@ -24,6 +24,8 @@ namespace Ormongo
 			return Document<T>.Create(item);
 		}
 
+		#region IQueryable
+
 		public IEnumerator<T> GetEnumerator()
 		{
 			return _queryable.GetEnumerator();
@@ -48,5 +50,7 @@ namespace Ormongo
 		{
 			get { return _queryable.Provider; }
 		}
+
+		#endregion
 	}
 }
