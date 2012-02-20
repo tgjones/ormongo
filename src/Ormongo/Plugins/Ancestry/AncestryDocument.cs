@@ -223,23 +223,23 @@ namespace Ormongo.Plugins.Ancestry
 			base.AfterFind();
 		}
 
-		protected override void OnSaving(object sender, DocumentEventArgs<T> args)
+		protected override void OnBeforeSave()
 		{
 			UpdateDescendantsWithNewAncestry();
-			base.OnSaving(sender, args);
+			base.OnBeforeSave();
 		}
 
-		protected override void OnSaved(object sender, DocumentEventArgs<T> args)
+		protected override void OnAfterSave()
 		{
 			AncestryWas = _ancestry;
 			AncestryChanged = false;
-			base.OnSaved(sender, args);
+			base.OnAfterSave();
 		}
 
-		protected override void BeforeDestroy()
+		protected override void OnBeforeDestroy()
 		{
 			ApplyOrphanStrategy();
-			base.BeforeDestroy();
+			base.OnBeforeDestroy();
 		}
 
 		private bool _disableAncestryCallbacks;

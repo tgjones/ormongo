@@ -169,25 +169,25 @@ namespace Ormongo.Plugins.Ancestry
 			base.AfterFind();
 		}
 
-		protected override void OnSaving(object sender, DocumentEventArgs<T> args)
+		protected override void OnBeforeSave()
 		{
-			base.OnSaving(sender, args);
+			base.OnBeforeSave();
 			AssignDefaultPosition();
 			if (SiblingRepositionRequired)
 				RepositionFormerSiblings();
 		}
 
-		protected override void OnSaved(object sender, DocumentEventArgs<T> args)
+		protected override void OnAfterSave()
 		{
 			_positionWas = _position;
 			_positionChanged = false;
-			base.OnSaved(sender, args);
+			base.OnAfterSave();
 		}
 
-		protected override void AfterDestroy()
+		protected override void OnAfterDestroy()
 		{
 			MoveLowerSiblingsUp();
-			base.AfterDestroy();
+			base.OnAfterDestroy();
 		}
 
 		private void MoveLowerSiblingsUp()
