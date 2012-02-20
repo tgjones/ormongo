@@ -73,7 +73,7 @@ namespace Ormongo.Tests.Plugins.Ancestry
 		}
 
 		[Test]
-		public void CanGetPathIDs()
+		public void CanGetAncestorsAndSelfIDs()
 		{
 			// Arrange.
 			var rootNode = TreeNode.Create(new TreeNode
@@ -92,7 +92,7 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 
 			// Act.
-			var result = grandChildNode.Ancestry.PathIDs.ToList();
+			var result = grandChildNode.Ancestry.AncestorsAndSelfIDs.ToList();
 
 			// Assert.
 			Assert.That(result, Has.Count.EqualTo(3));
@@ -102,7 +102,7 @@ namespace Ormongo.Tests.Plugins.Ancestry
 		}
 
 		[Test]
-		public void CanGetPath()
+		public void CanGetAncestorsAndSelf()
 		{
 			// Arrange.
 			var rootNode = TreeNode.Create(new TreeNode
@@ -121,7 +121,7 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			});
 
 			// Act.
-			var result = grandChildNode.Ancestry.Path.ToList();
+			var result = grandChildNode.Ancestry.AncestorsAndSelf.ToList();
 
 			// Assert.
 			Assert.That(result, Has.Count.EqualTo(3));

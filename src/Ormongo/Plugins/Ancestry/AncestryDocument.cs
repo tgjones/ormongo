@@ -29,12 +29,12 @@ namespace Ormongo.Plugins.Ancestry
 
 		public IEnumerable<ObjectId> PathIDs
 		{
-			get { return Ancestry.PathIDs; }
+			get { return Ancestry.AncestorsAndSelfIDs; }
 		}
 
 		public IQueryable<T> Path
 		{
-			get { return Ancestry.Path; }
+			get { return Ancestry.AncestorsAndSelf; }
 		}
 
 		public int Depth

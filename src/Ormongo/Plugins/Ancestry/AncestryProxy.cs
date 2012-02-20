@@ -87,7 +87,7 @@ namespace Ormongo.Plugins.Ancestry
 
 		public IEnumerable<ObjectId> AncestorIDs
 		{
-			get { return (String.IsNullOrEmpty(Ancestry)) ? new List<ObjectId>() : Ancestry.Split('/').Select(ObjectId.Parse); }
+			get { return (string.IsNullOrEmpty(Ancestry)) ? new List<ObjectId>() : Ancestry.Split('/').Select(ObjectId.Parse); }
 		}
 
 		public IQueryable<T> Ancestors
@@ -95,14 +95,14 @@ namespace Ormongo.Plugins.Ancestry
 			get { return Document<T>.Find(d => AncestorIDs.Contains(d.ID)); }
 		}
 
-		public IEnumerable<ObjectId> PathIDs
+		public IEnumerable<ObjectId> AncestorsAndSelfIDs
 		{
 			get { return AncestorIDs.Union(new[] { _instance.ID }); }
 		}
 
-		public IQueryable<T> Path
+		public IQueryable<T> AncestorsAndSelf
 		{
-			get { return Document<T>.Find(d => PathIDs.Contains(d.ID)); }
+			get { return Document<T>.Find(d => AncestorsAndSelfIDs.Contains(d.ID)); }
 		}
 
 		public int Depth
@@ -142,7 +142,7 @@ namespace Ormongo.Plugins.Ancestry
 
 		public bool IsRoot
 		{
-			get { return String.IsNullOrEmpty(Ancestry); }
+			get { return string.IsNullOrEmpty(Ancestry); }
 		}
 
 		#endregion
