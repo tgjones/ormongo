@@ -53,6 +53,13 @@ namespace Ormongo
 			get { return ID == ObjectId.Empty; }
 		}
 
+		public bool IsPersisted
+		{
+			get { return !(IsNewRecord || IsDestroyed); }
+		}
+
+		public bool IsDestroyed { get; private set; }
+
 		/// <summary>
 		/// Useful for temporarily storing data that doesn't need to be persisted to the database.
 		/// Some plugins use this to maintain state within the document.
@@ -155,6 +162,7 @@ namespace Ormongo
 		{
 			PluginManager.Execute(p => p.BeforeDestroy(this));
 			Delete(ID);
+			IsDestroyed = true;
 			PluginManager.Execute(p => p.AfterDestroy(this));
 		}
 

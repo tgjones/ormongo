@@ -14,7 +14,12 @@ namespace Ormongo.Plugins.Ancestry
 			{
 				GetAncestryProxy(document).UpdateDescendantsWithNewAncestry();
 				if (GetAncestrySettings(document.GetType()).OrderingEnabled)
-					GetOrderingProxy(document).AssignDefaultPosition();
+				{
+					var orderingProxy = GetOrderingProxy(document);
+					orderingProxy.AssignDefaultPosition();
+					if (orderingProxy.SiblingRepositionRequired)
+						orderingProxy.RepositionFormerSiblings();
+				}
 			}
 			base.BeforeSave(document);
 		}
@@ -27,6 +32,13 @@ namespace Ormongo.Plugins.Ancestry
 				GetAncestryProxy(document).ApplyOrphanStrategy(ancestrySettings.OrphanStrategy);
 			}
 			base.BeforeDestroy(document);
+		}
+
+		public override void AfterDestroy(object document)
+		{
+			if (HasAncestry(document) && GetAncestrySettings(document.GetType()).OrderingEnabled)
+				GetOrderingProxy(document).MoveLowerSiblingsUp();
+			base.AfterDestroy(document);
 		}
 
 		private AncestryAttribute GetAncestrySettings(Type documentType)

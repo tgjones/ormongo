@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 
 namespace Ormongo.Plugins.Ancestry
 {
@@ -29,6 +28,11 @@ namespace Ormongo.Plugins.Ancestry
 		{
 			_instance = instance;
 			_ancestry = new AncestryProxy<T>(instance);
+		}
+
+		private string PositionWas
+		{
+			get { return _instance.ExtraData.SafeGetWas<string>(PositionKey); }
 		}
 
 		private bool HasPosition
@@ -178,17 +182,27 @@ namespace Ormongo.Plugins.Ancestry
 			}
 		}
 
-		#region Helper methods
+		#region Callbacks
 
-		private void MoveLowerSiblingsUp()
+		void IOrderingProxy.MoveLowerSiblingsUp()
 		{
 			foreach (var sibling in LowerSiblings)
 				sibling.Inc(s => s.ExtraData[PositionKey], -1);
 		}
 
-		private void RepositionFormerSiblings()
+		bool IOrderingProxy.SiblingRepositionRequired
 		{
-			throw new System.NotImplementedException();
+			get { return _ancestry.AncestryChanged && _instance.IsPersisted; }
+		}
+
+		void IOrderingProxy.RepositionFormerSiblings()
+		{
+			var formerSiblings = Document<T>
+				.Find(d => d.ExtraData[AncestryProxy<T>.AncestryKey] == _ancestry.AncestryWas)
+				.Where(d => d.ExtraData[PositionKey] > PositionWas)
+				.Where(d => d.ID != _instance.ID);
+			foreach (var sibling in formerSiblings)
+				sibling.Inc(s => s.ExtraData[PositionKey], -1);
 		}
 
 		void IOrderingProxy.AssignDefaultPosition()
@@ -203,35 +217,5 @@ namespace Ormongo.Plugins.Ancestry
 		}
 
 		#endregion
-
-		/*
-		 *  private
-
-      def move_lower_siblings_up
-        lower_siblings.each { |s| s.inc(:position, -1) }
-      end
-
-      def reposition_former_siblings
-        former_siblings = base_class.where(:parent_id => attribute_was('parent_id')).
-                                     and(:position.gt => (attribute_was('position') || 0)).
-                                     excludes(:id => self.id)
-        former_siblings.each { |s| s.inc(:position,  -1) }
-      end
-
-      def sibling_reposition_required?
-        parent_id_changed? && persisted?
-      end
-
-      def assign_default_position
-        return unless self.position.nil? || self.parent_id_changed?
-
-        if self.siblings.empty? || self.siblings.collect(&:position).compact.empty?
-          self.position = 0
-        else
-          self.position = self.siblings.max(:position).to_i + 1
-        end
-      end
-    end
-		 * */
 	}
 }

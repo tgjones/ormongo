@@ -3,9 +3,10 @@ using MongoDB.Bson;
 
 namespace Ormongo
 {
+	// TODO: Make this not inherit from BsonDocument, so we can use normal getters/setters
 	public class DataDictionary : BsonDocument
 	{
-		private readonly Dictionary<string, BsonValue> _oldValues = new Dictionary<string,BsonValue>();
+		private readonly Dictionary<string, BsonValue> _oldValues = new Dictionary<string, BsonValue>();
 
 		public T SafeGet<T>(string key)
 		{
