@@ -1,8 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 namespace Ormongo.Plugins.Ancestry
 {
-	public class OrderingProxy<T>
+	public class OrderingProxy<T> : IOrderingProxy
 		where T : Document<T>
 	{
 		internal const string PositionKey = "Position";
@@ -28,6 +29,11 @@ namespace Ormongo.Plugins.Ancestry
 		{
 			_instance = instance;
 			_ancestry = new AncestryProxy<T>(instance);
+		}
+
+		private bool HasPosition
+		{
+			get { return _instance.ExtraData.Contains(PositionKey); }
 		}
 
 		public int Position
@@ -171,5 +177,61 @@ namespace Ormongo.Plugins.Ancestry
 				_instance.Save();
 			}
 		}
+
+		#region Helper methods
+
+		private void MoveLowerSiblingsUp()
+		{
+			foreach (var sibling in LowerSiblings)
+				sibling.Inc(s => s.ExtraData[PositionKey], -1);
+		}
+
+		private void RepositionFormerSiblings()
+		{
+			throw new System.NotImplementedException();
+		}
+
+		void IOrderingProxy.AssignDefaultPosition()
+		{
+			if (HasPosition && !_ancestry.AncestryChanged)
+				return;
+
+			if (!_ancestry.Siblings.Any() || !_ancestry.Siblings.Select(s => s.ExtraData[PositionKey]).Select(p => p != null).Any())
+				Position = 0;
+			else
+				Position = _ancestry.Siblings.Max(s => (int) s.ExtraData[PositionKey]) + 1;
+		}
+
+		#endregion
+
+		/*
+		 *  private
+
+      def move_lower_siblings_up
+        lower_siblings.each { |s| s.inc(:position, -1) }
+      end
+
+      def reposition_former_siblings
+        former_siblings = base_class.where(:parent_id => attribute_was('parent_id')).
+                                     and(:position.gt => (attribute_was('position') || 0)).
+                                     excludes(:id => self.id)
+        former_siblings.each { |s| s.inc(:position,  -1) }
+      end
+
+      def sibling_reposition_required?
+        parent_id_changed? && persisted?
+      end
+
+      def assign_default_position
+        return unless self.position.nil? || self.parent_id_changed?
+
+        if self.siblings.empty? || self.siblings.collect(&:position).compact.empty?
+          self.position = 0
+        else
+          self.position = self.siblings.max(:position).to_i + 1
+        end
+      end
+    end
+		 * */
 	}
 }

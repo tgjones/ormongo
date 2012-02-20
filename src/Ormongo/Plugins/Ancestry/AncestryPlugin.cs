@@ -8,10 +8,23 @@ namespace Ormongo.Plugins.Ancestry
 	{
 		private readonly Dictionary<Type, AncestryAttribute> _ancestrySettings = new Dictionary<Type, AncestryAttribute>();
 
+		public override void AfterFind(object document)
+		{
+			if (HasAncestry(document))
+			{
+				GetAncestryProxy(document).SetWasValues();
+			}
+			base.AfterFind(document);
+		}
+
 		public override void BeforeSave(object document)
 		{
 			if (HasAncestry(document))
+			{
 				GetAncestryProxy(document).UpdateDescendantsWithNewAncestry();
+				if (GetAncestrySettings(document.GetType()).OrderingEnabled)
+					GetOrderingProxy(document).AssignDefaultPosition();
+			}
 			base.BeforeSave(document);
 		}
 
@@ -52,9 +65,26 @@ namespace Ormongo.Plugins.Ancestry
 			return document.GetType().GetInterface(typeof(IHasAncestry).Name) != null;
 		}
 
+		private static Type GetBaseDocumentType(object document)
+		{
+			Type type = document.GetType();
+			while (type.BaseType != null && (!type.BaseType.IsGenericType || type.BaseType.GetGenericTypeDefinition() != typeof(Document<>)))
+				type = type.BaseType;
+			return type;
+		}
+
 		private static IAncestryProxy GetAncestryProxy(object document)
 		{
-			return (IAncestryProxy) document.GetType().GetProperty("Ancestry").GetValue(document, null);
+			return (IAncestryProxy) Activator.CreateInstance(
+				typeof(AncestryProxy<>).MakeGenericType(GetBaseDocumentType(document)),
+				document);
+		}
+
+		private static IOrderingProxy GetOrderingProxy(object document)
+		{
+			return (IOrderingProxy)Activator.CreateInstance(
+				typeof(OrderingProxy<>).MakeGenericType(GetBaseDocumentType(document)),
+				document);
 		}
 	}
 }

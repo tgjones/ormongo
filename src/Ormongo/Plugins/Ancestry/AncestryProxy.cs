@@ -18,16 +18,21 @@ namespace Ormongo.Plugins.Ancestry
 
 		private readonly T _instance;
 
-		private bool AncestryChanged
+		internal bool AncestryChanged
 		{
 			get { return _instance.TransientData.SafeGet<bool>(AncestryChangedKey); }
 			set { _instance.TransientData.SafeSet(AncestryChangedKey, value); }
 		}
 
-		private string AncestryWas
+		internal string AncestryWas
 		{
 			get { return _instance.TransientData.SafeGet<string>(AncestryWasKey); }
 			set { _instance.TransientData.SafeSet(AncestryWasKey, value); }
+		}
+
+		void IAncestryProxy.SetWasValues()
+		{
+			AncestryWas = Ancestry;
 		}
 
 		#region Static
@@ -44,7 +49,6 @@ namespace Ormongo.Plugins.Ancestry
 		public AncestryProxy(T instance)
 		{
 			_instance = instance;
-			AncestryWas = Ancestry;
 		}
 
 		#endregion
@@ -77,7 +81,7 @@ namespace Ormongo.Plugins.Ancestry
 				if (_instance.IsNewRecord)
 					throw new InvalidOperationException("No child ancestry for new record. Save record before performing tree operations.");
 
-				return (String.IsNullOrEmpty(AncestryWas))
+				return (string.IsNullOrEmpty(AncestryWas))
 					? _instance.ID.ToString()
 					: String.Format("{0}/{1}", AncestryWas, _instance.ID);
 			}
@@ -271,7 +275,7 @@ namespace Ormongo.Plugins.Ancestry
 				return;
 
 			// Skip this if it's a new record or ancestry wasn't updated.
-			if (_instance.IsNewRecord || !_instance.TransientData.SafeGet<bool>(AncestryChangedKey))
+			if (_instance.IsNewRecord || !AncestryChanged)
 				return;
 
 			// For each descendant...
