@@ -8,15 +8,6 @@ namespace Ormongo.Plugins.Ancestry
 	{
 		private readonly Dictionary<Type, AncestryAttribute> _ancestrySettings = new Dictionary<Type, AncestryAttribute>();
 
-		public override void AfterFind(object document)
-		{
-			if (HasAncestry(document))
-			{
-				GetAncestryProxy(document).SetWasValues();
-			}
-			base.AfterFind(document);
-		}
-
 		public override void BeforeSave(object document)
 		{
 			if (HasAncestry(document))
@@ -26,13 +17,6 @@ namespace Ormongo.Plugins.Ancestry
 					GetOrderingProxy(document).AssignDefaultPosition();
 			}
 			base.BeforeSave(document);
-		}
-
-		public override void AfterSave(object document)
-		{
-			if (HasAncestry(document))
-				GetAncestryProxy(document).ResetChangedFields();
-			base.AfterSave(document);
 		}
 
 		public override void BeforeDestroy(object document)

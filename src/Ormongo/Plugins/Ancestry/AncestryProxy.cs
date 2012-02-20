@@ -12,27 +12,18 @@ namespace Ormongo.Plugins.Ancestry
 		where T : Document<T>
 	{
 		internal const string AncestryKey = "Ancestry";
-		private const string AncestryWasKey = "AncestryWas";
-		private const string AncestryChangedKey = "AncestryChanged";
 		private const string DisableAncestryCallbacksKey = "DisableAncestryCallbacks";
 
 		private readonly T _instance;
 
 		internal bool AncestryChanged
 		{
-			get { return _instance.TransientData.SafeGet<bool>(AncestryChangedKey); }
-			set { _instance.TransientData.SafeSet(AncestryChangedKey, value); }
+			get { return _instance.ExtraData.SafeGetWasChanged<bool>(AncestryKey); }
 		}
 
 		internal string AncestryWas
 		{
-			get { return _instance.TransientData.SafeGet<string>(AncestryWasKey); }
-			set { _instance.TransientData.SafeSet(AncestryWasKey, value); }
-		}
-
-		void IAncestryProxy.SetWasValues()
-		{
-			AncestryWas = Ancestry;
+			get { return _instance.ExtraData.SafeGetWas<string>(AncestryKey); }
 		}
 
 		#region Static
@@ -58,16 +49,7 @@ namespace Ormongo.Plugins.Ancestry
 		public string Ancestry
 		{
 			get { return _instance.ExtraData.SafeGet<string>(AncestryKey); }
-			set
-			{
-				_instance.ExtraData.SafeSet(AncestryKey, value);
-				AncestryChanged = true;
-			}
-		}
-
-		void IAncestryProxy.ResetChangedFields()
-		{
-			AncestryWas = Ancestry;
+			set { _instance.ExtraData.SafeSet(AncestryKey, value); }
 		}
 
 		/// <summary>
@@ -288,7 +270,7 @@ namespace Ormongo.Plugins.Ancestry
 						? _instance.ID.ToString()
 						: String.Format("{0}/{1}", Ancestry, _instance.ID);
 					string newAncestry = Regex.Replace((string) descendant.ExtraData[AncestryKey], "^" + ChildAncestry, forReplace);
-					descendant.ExtraData[AncestryKey] = newAncestry;
+					descendant.ExtraData.SafeSet(AncestryKey, newAncestry);
 					descendant.Save();
 				});
 			}

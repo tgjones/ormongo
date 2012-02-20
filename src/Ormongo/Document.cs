@@ -106,6 +106,8 @@ namespace Ormongo
 
 		protected virtual void OnSaved(object sender, DocumentEventArgs<T> args)
 		{
+			TransientData.ResetChangedValues();
+			ExtraData.ResetChangedValues();
 			if (Saved != null)
 				Saved(sender, args);
 		}
