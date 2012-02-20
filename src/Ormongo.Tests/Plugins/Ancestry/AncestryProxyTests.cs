@@ -597,6 +597,64 @@ namespace Ormongo.Tests.Plugins.Ancestry
 		#region Descendants
 
 		[Test]
+		public void CanGetDescendantsAndSelf()
+		{
+			// Arrange.
+			var rootNode = TreeNode.Create(new TreeNode
+			{
+				Name = "Root"
+			});
+			var childNode = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child"
+			});
+			var grandChildNode = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = childNode },
+				Name = "GrandChild"
+			});
+
+			// Act.
+			var result = rootNode.Ancestry.DescendantsAndSelf.ToList();
+
+			// Assert.
+			Assert.That(result, Has.Count.EqualTo(3));
+			Assert.That(result[0].ID, Is.EqualTo(rootNode.ID));
+			Assert.That(result[1].ID, Is.EqualTo(childNode.ID));
+			Assert.That(result[2].ID, Is.EqualTo(grandChildNode.ID));
+		}
+
+		[Test]
+		public void CanGetDescendantsAndSelfIDs()
+		{
+			// Arrange.
+			var rootNode = TreeNode.Create(new TreeNode
+			{
+				Name = "Root"
+			});
+			var childNode = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Name = "Child"
+			});
+			var grandChildNode = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = childNode },
+				Name = "GrandChild"
+			});
+
+			// Act.
+			var result = rootNode.Ancestry.DescendantsAndSelfIDs.ToList();
+
+			// Assert.
+			Assert.That(result, Has.Count.EqualTo(3));
+			Assert.That(result[0], Is.EqualTo(rootNode.ID));
+			Assert.That(result[1], Is.EqualTo(childNode.ID));
+			Assert.That(result[2], Is.EqualTo(grandChildNode.ID));
+		}
+
+		[Test]
 		public void CanGetDescendants()
 		{
 			// Arrange.
@@ -650,68 +708,6 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			Assert.That(result, Has.Count.EqualTo(2));
 			Assert.That(result[0], Is.EqualTo(childNode.ID));
 			Assert.That(result[1], Is.EqualTo(grandChildNode.ID));
-		}
-
-		#endregion
-
-		#region Subtree
-
-		[Test]
-		public void CanGetSubtree()
-		{
-			// Arrange.
-			var rootNode = TreeNode.Create(new TreeNode
-			{
-				Name = "Root"
-			});
-			var childNode = TreeNode.Create(new TreeNode
-			{
-				Ancestry = { Parent = rootNode },
-				Name = "Child"
-			});
-			var grandChildNode = TreeNode.Create(new TreeNode
-			{
-				Ancestry = { Parent = childNode },
-				Name = "GrandChild"
-			});
-
-			// Act.
-			var result = rootNode.Ancestry.Subtree.ToList();
-
-			// Assert.
-			Assert.That(result, Has.Count.EqualTo(3));
-			Assert.That(result[0].ID, Is.EqualTo(rootNode.ID));
-			Assert.That(result[1].ID, Is.EqualTo(childNode.ID));
-			Assert.That(result[2].ID, Is.EqualTo(grandChildNode.ID));
-		}
-
-		[Test]
-		public void CanGetSubtreeIDs()
-		{
-			// Arrange.
-			var rootNode = TreeNode.Create(new TreeNode
-			{
-				Name = "Root"
-			});
-			var childNode = TreeNode.Create(new TreeNode
-			{
-				Ancestry = { Parent = rootNode },
-				Name = "Child"
-			});
-			var grandChildNode = TreeNode.Create(new TreeNode
-			{
-				Ancestry = { Parent = childNode },
-				Name = "GrandChild"
-			});
-
-			// Act.
-			var result = rootNode.Ancestry.SubtreeIDs.ToList();
-
-			// Assert.
-			Assert.That(result, Has.Count.EqualTo(3));
-			Assert.That(result[0], Is.EqualTo(rootNode.ID));
-			Assert.That(result[1], Is.EqualTo(childNode.ID));
-			Assert.That(result[2], Is.EqualTo(grandChildNode.ID));
 		}
 
 		#endregion

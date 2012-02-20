@@ -143,16 +143,16 @@ namespace Ormongo.Plugins.Ancestry
 
 		#endregion
 
-		#region Subtree
+		#region DescendantsAndSelf
 
 		public IQueryable<T> Subtree
 		{
-			get { return Ancestry.Subtree; }
+			get { return Ancestry.DescendantsAndSelf; }
 		}
 
 		public IEnumerable<ObjectId> SubtreeIDs
 		{
-			get { return Ancestry.SubtreeIDs; }
+			get { return Ancestry.DescendantsAndSelfIDs; }
 		}
 
 		#endregion

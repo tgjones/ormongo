@@ -212,6 +212,22 @@ namespace Ormongo.Plugins.Ancestry
 			return ExpressionUtility.GetPropertyName<T, DataDictionary>(d => d.ExtraData);
 		}
 
+		public IQueryable<T> DescendantsAndSelf
+		{
+			get
+			{
+				return Document<T>.FindNative(Query.Or(
+					Query.EQ("_id", _instance.ID),
+					Query.Matches(GetExtraDataPropertyName() + "." + AncestryKey, "^" + ChildAncestry + "/"),
+					Query.EQ(GetExtraDataPropertyName() + "." + AncestryKey, ChildAncestry)));
+			}
+		}
+
+		public IEnumerable<ObjectId> DescendantsAndSelfIDs
+		{
+			get { return DescendantsAndSelf.Select(d => d.ID); }
+		}
+
 		public IQueryable<T> Descendants
 		{
 			get
@@ -225,26 +241,6 @@ namespace Ormongo.Plugins.Ancestry
 		public IEnumerable<ObjectId> DescendantIDs
 		{
 			get { return Descendants.Select(d => d.ID); }
-		}
-
-		#endregion
-
-		#region Subtree
-
-		public IQueryable<T> Subtree
-		{
-			get
-			{
-				return Document<T>.FindNative(Query.Or(
-					Query.EQ("_id", _instance.ID),
-					Query.Matches(GetExtraDataPropertyName() + "." + AncestryKey, "^" + ChildAncestry + "/"),
-					Query.EQ(GetExtraDataPropertyName() + "." + AncestryKey, ChildAncestry)));
-			}
-		}
-
-		public IEnumerable<ObjectId> SubtreeIDs
-		{
-			get { return Subtree.Select(d => d.ID); }
 		}
 
 		#endregion
