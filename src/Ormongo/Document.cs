@@ -29,16 +29,18 @@ namespace Ormongo
 
 		#endregion
 
+		public static Func<IQueryable<T>, IQueryable<T>> DefaultScope { get; set; }
+
 		static Document()
 		{
-			// TODO: Does this happen just once, or once for each concrete type
-			// created from this generic type?
-
-			// Register custom serialization provider.
-			BsonSerializer.RegisterSerializationProvider(new SerializationProvider());
+			// Perform one-time initialization.
+			OrmongoConfiguration.Initialize();
 
 			// Initialize plugins.
-			PluginManager.Execute(p => p.Initialize());
+			PluginManager.Execute(p => p.Initialize(typeof(T)));
+
+			// Initialize default scope.
+			DefaultScope = items => items;
 		}
 
 		#endregion
@@ -160,7 +162,7 @@ namespace Ormongo
 
 		public static IQueryable<T> FindNative(IMongoQuery query)
 		{
-			return GetCollection().Find(query).AsQueryable();
+			return ApplyDefaultScope(GetCollection().Find(query).AsQueryable());
 		}
 
 		public static T FindOneByID(ObjectId id)
@@ -180,7 +182,7 @@ namespace Ormongo
 
 		public static IQueryable<T> FindAll()
 		{
-			return GetCollection().AsQueryable();
+			return ApplyDefaultScope(GetCollection().AsQueryable());
 		}
 
 		public static IEnumerable<T> FindNear<TProperty>(Expression<Func<T, TProperty>> expression,
@@ -190,6 +192,11 @@ namespace Ormongo
 			var cursor = GetCollection().Find(query);
 			cursor.Limit = limit;
 			return cursor;
+		}
+
+		private static IQueryable<T> ApplyDefaultScope(IQueryable<T> items)
+		{
+			return DefaultScope(items);
 		}
 
 		#endregion

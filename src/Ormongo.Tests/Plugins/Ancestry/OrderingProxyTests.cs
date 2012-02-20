@@ -75,5 +75,73 @@ namespace Ormongo.Tests.Plugins.Ancestry
 			Assert.That(result, Has.Count.EqualTo(1));
 			Assert.That(result[0].ID, Is.EqualTo(childNode2.ID));
 		}
+
+		[Test]
+		public void CanGetLowestSibling()
+		{
+			// Arrange.
+			var rootNode = TreeNode.Create(new TreeNode
+			{
+				Name = "Root"
+			});
+			var childNode1 = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Ordering = { Position = 2 },
+				Name = "Child1"
+			});
+			var childNode2 = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Ordering = { Position = 1 },
+				Name = "Child2"
+			});
+			var childNode3 = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Ordering = { Position = 3 },
+				Name = "Child3"
+			});
+
+			// Act.
+			var result = childNode1.Ordering.LowestSibling;
+
+			// Assert.
+			Assert.That(result.ID, Is.EqualTo(childNode3.ID));
+		}
+
+		[Test]
+		public void CanGetHighestSibling()
+		{
+			// Arrange.
+			var rootNode = TreeNode.Create(new TreeNode
+			{
+				Name = "Root"
+			});
+			var childNode1 = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Ordering = { Position = 2 },
+				Name = "Child1"
+			});
+			var childNode2 = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Ordering = { Position = 1 },
+				Name = "Child2"
+			});
+			var childNode3 = TreeNode.Create(new TreeNode
+			{
+				Ancestry = { Parent = rootNode },
+				Ordering = { Position = 3 },
+				Name = "Child3"
+			});
+
+			// Act.
+			var result = childNode1.Ordering.HighestSibling;
+
+			// Assert.
+			Assert.That(result.ID, Is.EqualTo(childNode2.ID));
+		}
 	}
 }

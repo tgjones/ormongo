@@ -11,8 +11,13 @@ namespace Ormongo.Plugins.Ancestry
 		public OrphanStrategy OrphanStrategy { get; set; }
 
 		/// <summary>
-		/// Cache the depth of each node in the ExtraData.AncestryDepth field (default: false)
+		/// Cache the depth of each node in the ExtraData.AncestryDepth field. Defaults to false.
 		/// </summary>
 		public bool CacheDepth { get; set; }
+
+		/// <summary>
+		/// Enable the ordering of children within the tree. Defaults to false.
+		/// </summary>
+		public bool OrderingEnabled { get; set; }
 	}
 }

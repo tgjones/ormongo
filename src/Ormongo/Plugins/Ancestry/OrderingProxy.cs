@@ -7,13 +7,18 @@ namespace Ormongo.Plugins.Ancestry
 	{
 		internal const string PositionKey = "Position";
 
+		static OrderingProxy()
+		{
+			Document<T>.DefaultScope = items => items.OrderBy(d => d.ExtraData[PositionKey]);
+		}
+
 		private readonly T _instance;
-		private readonly AncestryProxy<T> _ancestryProxy;
+		private readonly AncestryProxy<T> _ancestry;
 
 		public OrderingProxy(T instance)
 		{
 			_instance = instance;
-			_ancestryProxy = new AncestryProxy<T>(instance);
+			_ancestry = new AncestryProxy<T>(instance);
 		}
 
 		public int Position
@@ -28,7 +33,7 @@ namespace Ormongo.Plugins.Ancestry
 		/// </summary>
 		public IQueryable<T> LowerSiblings
 		{
-			get { return _ancestryProxy.Siblings.Where(d => d.ExtraData[PositionKey] > Position); }
+			get { return _ancestry.Siblings.Where(d => d.ExtraData[PositionKey] > Position); }
 		}
 
 		/// <summary>
@@ -37,7 +42,23 @@ namespace Ormongo.Plugins.Ancestry
 		/// </summary>
 		public IQueryable<T> HigherSiblings
 		{
-			get { return _ancestryProxy.Siblings.Where(d => d.ExtraData[PositionKey] < Position); }
+			get { return _ancestry.Siblings.Where(d => d.ExtraData[PositionKey] < Position); }
+		}
+
+		/// <summary>
+		/// Gets the lowest sibling (could be this)
+		/// </summary>
+		public T LowestSibling
+		{
+			get { return _ancestry.SiblingsAndSelf.ToList().Last(); }
+		}
+
+		/// <summary>
+		/// Gets the highest sibling (could be this)
+		/// </summary>
+		public T HighestSibling
+		{
+			get { return _ancestry.SiblingsAndSelf.First(); }
 		}
 	}
 }

@@ -1,8 +1,10 @@
+using System;
+
 namespace Ormongo.Plugins
 {
 	public interface IPlugin
 	{
-		void Initialize();
+		void Initialize(Type documentType);
 
 		void BeforeSave(object document);
 		void AfterSave(object document);

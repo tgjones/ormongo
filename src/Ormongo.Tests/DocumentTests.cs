@@ -26,6 +26,31 @@ namespace Ormongo.Tests
 		}
 
 		[Test]
+		public void DefaultScope()
+		{
+			// Arrange.
+			var defaultScope = BlogPost.DefaultScope;
+			BlogPost.DefaultScope = items => items.OrderBy(d => d.Title);
+			BlogPost post1 = BlogPost.Create(new BlogPost
+			{
+				Title = "Z",
+			});
+			BlogPost post2 = BlogPost.Create(new BlogPost
+			{
+				Title = "A",
+			});
+
+			// Act.
+			BlogPost retrievedPost = BlogPost.FindAll().First();
+
+			// Assert.
+			Assert.That(retrievedPost.ID, Is.EqualTo(post2.ID));
+
+			// Clean up.
+			BlogPost.DefaultScope = defaultScope;
+		}
+
+		[Test]
 		public void TransientDataIsNotSaved()
 		{
 			// Arrange.

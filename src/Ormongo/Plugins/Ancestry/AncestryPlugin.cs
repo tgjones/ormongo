@@ -6,7 +6,7 @@ namespace Ormongo.Plugins.Ancestry
 {
 	public class AncestryPlugin : PluginBase
 	{
-		private Dictionary<Type, AncestryAttribute> _ancestrySettings = new Dictionary<Type,AncestryAttribute>();
+		private readonly Dictionary<Type, AncestryAttribute> _ancestrySettings = new Dictionary<Type, AncestryAttribute>();
 
 		public override void BeforeSave(object document)
 		{
@@ -26,15 +26,14 @@ namespace Ormongo.Plugins.Ancestry
 		{
 			if (HasAncestry(document))
 			{
-				var ancestrySettings = GetAncestrySettings(document);
+				var ancestrySettings = GetAncestrySettings(document.GetType());
 				GetAncestryProxy(document).ApplyOrphanStrategy(ancestrySettings.OrphanStrategy);
 			}
 			base.BeforeDestroy(document);
 		}
 
-		private AncestryAttribute GetAncestrySettings(object document)
+		private AncestryAttribute GetAncestrySettings(Type documentType)
 		{
-			var documentType = document.GetType();
 			if (!_ancestrySettings.ContainsKey(documentType))
 			{
 				var attributes = documentType.GetCustomAttributes(typeof(AncestryAttribute), true);

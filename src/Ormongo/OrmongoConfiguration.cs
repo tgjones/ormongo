@@ -1,17 +1,32 @@
 using System.Collections.Generic;
 using System.Linq;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
+using Ormongo.Internal.Serialization;
 
 namespace Ormongo
 {
 	public static class OrmongoConfiguration
 	{
+		private static bool _initialized;
+
 		public static string ServerHost { get; set; }
 		public static int ServerPort { get; set; }
 		public static string Database { get; set; }
 		public static bool SafeMode { get; set; }
 
 		public static bool AutoCreateIndexes { get; set; }
+
+		internal static void Initialize()
+		{
+			if (_initialized)
+				return;
+
+			// Register custom serialization provider.
+			BsonSerializer.RegisterSerializationProvider(new SerializationProvider());
+
+			_initialized = true;
+		}
 
 		internal static MongoServer GetMongoServer()
 		{
