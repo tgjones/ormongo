@@ -8,10 +8,6 @@ namespace Ormongo.Tests.Plugins.Ancestry
 	[TestFixture]
 	public class AncestryProxyTests : AncestryTestsBase
 	{
-		#region Static
-
-		#endregion
-
 		#region Instance
 
 		#region Ancestors

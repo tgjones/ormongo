@@ -78,6 +78,7 @@
     <Compile Include="Plugins\Ancestry\AncestryPlugin.cs" />
     <Compile Include="Plugins\Ancestry\IAncestryProxy.cs" />
     <Compile Include="Plugins\Ancestry\IHasAncestry.cs" />
+    <Compile Include="Plugins\Ancestry\OrderingProxy.cs" />
     <Compile Include="Plugins\Ancestry\OrphanStrategy.cs" />
     <Compile Include="Plugins\EmbeddedDocumentPlugin.cs" />
     <Compile Include="Plugins\IPlugin.cs" />

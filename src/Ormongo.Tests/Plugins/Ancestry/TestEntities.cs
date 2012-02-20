@@ -11,6 +11,12 @@ namespace Ormongo.Tests.Plugins.Ancestry
 		{
 			get { return _ancestry ?? (_ancestry = new AncestryProxy<TreeNode>(this)); }
 		}
+
+		private OrderingProxy<TreeNode> _ordering;
+		public OrderingProxy<TreeNode> Ordering
+		{
+			get { return _ordering ?? (_ordering = new OrderingProxy<TreeNode>(this)); }
+		}
 	}
 
 	public class FolderNode : TreeNode
