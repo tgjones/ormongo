@@ -334,5 +334,23 @@ namespace Ormongo
 		}
 
 		#endregion
+
+		#region Equality
+
+		public override bool Equals(object obj)
+		{
+			var document = obj as Document<T>;
+			if (document == null)
+				return false;
+
+			return ID == document.ID;
+		}
+
+		public override int GetHashCode()
+		{
+			return ID.GetHashCode();
+		}
+
+		#endregion
 	}
 }

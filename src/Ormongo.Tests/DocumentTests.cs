@@ -351,5 +351,34 @@ namespace Ormongo.Tests
 		}
 
 		#endregion
+
+		#region Equality
+
+		[Test]
+		public void ObjectsWithSameIDAreNotEqualUsingDoubleEqualsOperator()
+		{
+			// Arrange.
+			var id = ObjectId.GenerateNewId();
+			var post1 = new BlogPost { ID = id };
+			var post2 = new BlogPost { ID = id };
+
+			// Act / Assert.
+			Assert.That(post1 == post2, Is.False);
+			Assert.That(post1 != post2, Is.True);
+		}
+
+		[Test]
+		public void ObjectsWithSameIDAreEqualUsingEqualsMethod()
+		{
+			// Arrange.
+			var id = ObjectId.GenerateNewId();
+			var post1 = new BlogPost { ID = id };
+			var post2 = new BlogPost { ID = id };
+
+			// Act / Assert.
+			Assert.That(post1.Equals(post2), Is.True);
+		}
+
+		#endregion
 	}
 }
