@@ -13,6 +13,7 @@ Bin
 *ReSharper*
 *resharper*
 *.suo
+*.dotCover
 *.cache
 Thumbs.db
  
