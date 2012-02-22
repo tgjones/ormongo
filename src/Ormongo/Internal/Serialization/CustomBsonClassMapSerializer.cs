@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
@@ -146,7 +148,9 @@ namespace Ormongo.Internal.Serialization
 				if (nominalType.IsGenericType && nominalType.GetGenericTypeDefinition() == typeof(Nullable<>))
 					nominalType = nominalType.GetGenericArguments()[0];
 				this.VerifyNominalType(nominalType);
-				Type type = value == null ? nominalType : value.GetType();
+				// Added
+				Type type = value == null ? nominalType : ProxyManager.GetUnderlyingType(value.GetType());
+				// Added
 				BsonClassMap bsonClassMap = BsonClassMap.LookupClassMap(type);
 				bsonWriter.WriteStartDocument();
 				DocumentSerializationOptions serializationOptions = options == null ? DocumentSerializationOptions.Defaults : (DocumentSerializationOptions)options;
@@ -215,7 +219,11 @@ namespace Ormongo.Internal.Serialization
 				if (IsRelation(memberMap))
 				{
 					ValidateVirtualRelation(memberMap);
-					((IDocument) obj).RelationalIDs[memberMap.MemberName] = (ObjectId) obj1;
+					if (obj1 != null)
+						if (IsReferencesManyRelation(memberMap))
+							((IDocument)obj).ReferencesManyIDs[memberMap.MemberName] = ((IEnumerable)obj1).Cast<ObjectId>().ToList();
+						else
+							((IDocument) obj).ReferencesOneIDs[memberMap.MemberName] = (ObjectId) obj1;
 				}
 				// --- Added
 				else
@@ -255,7 +263,13 @@ namespace Ormongo.Internal.Serialization
 		// Added
 		private static bool IsRelation(BsonMemberMap memberMap)
 		{
-			return ReflectionUtility.IsSubclassOfRawGeneric(typeof(Document<>), memberMap.MemberType);
+			return ReflectionUtility.IsSubclassOfRawGeneric(typeof(Document<>), memberMap.MemberType)
+				|| ReflectionUtility.IsListOfRawGeneric(typeof(Document<>), memberMap.MemberType);
+		}
+
+		private static bool IsReferencesManyRelation(BsonMemberMap memberMap)
+		{
+			return ReflectionUtility.IsListOfRawGeneric(typeof(Document<>), memberMap.MemberType);
 		}
 
 		private static void ValidateVirtualRelation(BsonMemberMap memberMap)

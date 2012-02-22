@@ -67,8 +67,10 @@
     <Compile Include="EmbeddedDocumentWithID.cs" />
     <Compile Include="Internal\CollectionUtility.cs" />
     <Compile Include="Internal\EmbeddedDocumentUtility.cs" />
+    <Compile Include="Internal\ExtensionMethods.cs" />
     <Compile Include="Internal\IDocument.cs" />
     <Compile Include="Internal\Proxying\IProxy.cs" />
+    <Compile Include="Internal\Proxying\LazyLoadingInterceptor.cs" />
     <Compile Include="Internal\Proxying\ProxyManager.cs" />
     <Compile Include="Internal\ReflectionUtility.cs" />
     <Compile Include="Internal\Serialization\AttachmentSerializer.cs" />
@@ -77,7 +79,8 @@
     <Compile Include="Internal\Serialization\EmbeddedDocumentWithIDSerializer.cs" />
     <Compile Include="Internal\Serialization\EmbeddedDocumentSerializer.cs" />
     <Compile Include="Internal\Serialization\DocumentSerializer.cs" />
-    <Compile Include="Internal\Serialization\RelationalDocumentSerializer.cs" />
+    <Compile Include="Internal\Serialization\RelationCollectionSerializer.cs" />
+    <Compile Include="Internal\Serialization\RelationSerializer.cs" />
     <Compile Include="Internal\Serialization\SerializationProvider.cs" />
     <Compile Include="OrmongoConfiguration.cs" />
     <Compile Include="Plugins\EmbeddedDocumentPlugin.cs" />

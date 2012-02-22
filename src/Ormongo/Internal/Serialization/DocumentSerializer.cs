@@ -13,7 +13,7 @@ namespace Ormongo.Internal.Serialization
 			object result;
 			if (IsRelationalAssociation(bsonReader, nominalType))
 			{
-				result = RelationalDocumentSerializer.Instance.Deserialize(bsonReader, nominalType, options);
+				result = RelationSerializer.Instance.Deserialize(bsonReader, nominalType, options);
 			}
 			else
 			{
@@ -29,7 +29,7 @@ namespace Ormongo.Internal.Serialization
 			object result;
 			if (IsRelationalAssociation(bsonReader, nominalType))
 			{
-				result = RelationalDocumentSerializer.Instance.Deserialize(bsonReader, nominalType, actualType, options);
+				result = RelationSerializer.Instance.Deserialize(bsonReader, nominalType, actualType, options);
 			}
 			else
 			{
@@ -43,21 +43,30 @@ namespace Ormongo.Internal.Serialization
 		public override void Serialize(BsonWriter bsonWriter, Type nominalType, object value, IBsonSerializationOptions options)
 		{
 			if (IsRelationalAssociation(bsonWriter, value))
-				RelationalDocumentSerializer.Instance.Serialize(bsonWriter, nominalType, value, options);
+				RelationSerializer.Instance.Serialize(bsonWriter, nominalType, value, options);
 			else
 				CustomBsonClassMapSerializer.Instance.Serialize(bsonWriter, nominalType, value, options);
 		}
 
 		private static bool IsRelationalAssociation(BsonWriter bsonWriter, object value)
 		{
-			return value != null && bsonWriter.State == BsonWriterState.Value
-				&& ReflectionUtility.IsSubclassOfRawGeneric(typeof(Document<>), value.GetType());
+			if (value == null || bsonWriter.State != BsonWriterState.Value)
+				return false;
+
+			return IsRelationalType(value.GetType());
 		}
 
 		private static bool IsRelationalAssociation(BsonReader bsonReader, Type nominalType)
 		{
-			return bsonReader.State == BsonReaderState.Value && bsonReader.CurrentBsonType == BsonType.ObjectId
-				&& ReflectionUtility.IsSubclassOfRawGeneric(typeof(Document<>), nominalType);
+			if (bsonReader.CurrentBsonType != BsonType.ObjectId || bsonReader.State != BsonReaderState.Value)
+				return false;
+
+			return IsRelationalType(nominalType);
+		}
+
+		private static bool IsRelationalType(Type type)
+		{
+			return ReflectionUtility.IsSubclassOfRawGeneric(typeof(Document<>), type);
 		}
 
 		public override bool GetDocumentId(object document, out object id, out Type idNominalType, out IIdGenerator idGenerator)

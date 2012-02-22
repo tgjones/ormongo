@@ -24,12 +24,7 @@ namespace Ormongo.Internal
 
 			// Embedded documents inside lists.
 			embeddedDocuments = embeddedDocuments.Union(properties
-				.Where(pi => ReflectionUtility.IsSubclassOfRawGeneric(typeof(List<>), pi.PropertyType))
-				.Where(pi =>
-				{
-					var args = pi.PropertyType.GetGenericArguments();
-					return args.Length == 1 && ReflectionUtility.IsSubclassOfRawGeneric(typeof (EmbeddedDocument<>), args[0]);
-				})
+				.Where(pi => ReflectionUtility.IsListOfRawGeneric(typeof(EmbeddedDocument<>), pi.PropertyType))
 				.SelectMany(pi =>
 				{
 					var list = pi.GetValue(document, null) as IList;

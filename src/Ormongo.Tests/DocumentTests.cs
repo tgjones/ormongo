@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using FluentMongo.Linq;
@@ -330,12 +331,12 @@ namespace Ormongo.Tests
 
 		#region Inheritance
 
-		private abstract class Animal : Document<Animal>
+		public abstract class Animal : Document<Animal>
 		{
 			
 		}
 
-		private class Dog : Animal
+		public class Dog : Animal
 		{
 			
 		}
@@ -356,19 +357,6 @@ namespace Ormongo.Tests
 		#region Equality
 
 		[Test]
-		public void ObjectsWithSameIDAreNotEqualUsingDoubleEqualsOperator()
-		{
-			// Arrange.
-			var id = ObjectId.GenerateNewId();
-			var post1 = new BlogPost { ID = id };
-			var post2 = new BlogPost { ID = id };
-
-			// Act / Assert.
-			Assert.That(post1 == post2, Is.False);
-			Assert.That(post1 != post2, Is.True);
-		}
-
-		[Test]
 		public void ObjectsWithSameIDAreEqualUsingEqualsMethod()
 		{
 			// Arrange.
@@ -381,6 +369,19 @@ namespace Ormongo.Tests
 		}
 
 		[Test]
+		public void ObjectsWithSameIDAreEqualUsingEqualityOperator()
+		{
+			// Arrange.
+			var id = ObjectId.GenerateNewId();
+			var post1 = new BlogPost { ID = id };
+			var post2 = new BlogPost { ID = id };
+
+			// Act / Assert.
+			Assert.That(post1 == post2, Is.True);
+			Assert.That(post1 != post2, Is.False);
+		}
+
+		[Test]
 		public void ObjectsWithEmptyIDsAreNotEqualUsingEqualsMethod()
 		{
 			// Arrange.
@@ -389,6 +390,17 @@ namespace Ormongo.Tests
 
 			// Act / Assert.
 			Assert.That(post1.Equals(post2), Is.False);
+		}
+
+		[Test]
+		public void ObjectsWithEmptyIDsAreNotEqualUsingEqualityOperator()
+		{
+			// Arrange.
+			var post1 = new BlogPost();
+			var post2 = new BlogPost();
+
+			// Act / Assert.
+			Assert.That(post1 == post2, Is.False);
 		}
 
 		#endregion
@@ -406,7 +418,7 @@ namespace Ormongo.Tests
 			};
 
 			// Act.
-			var book = Book.Create(new Book
+			Book.Create(new Book
 			{
 				Title = "The Quiet American",
 				Author = person
@@ -479,6 +491,120 @@ namespace Ormongo.Tests
 
 			// Assert.
 			Assert.That(retrievedBook.Author, Is.EqualTo(person));
+		}
+
+		[Test]
+		public void ReferencesOneWitNullReferenceWorks()
+		{
+			// Arrange.
+			var book = Book.Create(new Book
+			{
+				Title = "The Quiet American",
+				Author = null
+			});
+
+			// Act.
+			var retrievedBook = Book.FindOneByID(book.ID);
+
+			// Assert.
+			Assert.That(retrievedBook.Author, Is.Null);
+		}
+
+		[Test]
+		public void ProxyObjectsAreSerialisedAsOriginalType()
+		{
+			// Arrange.
+			var book = Book.Create(new Book
+			{
+				Title = "The Quiet American",
+				Author = null
+			});
+
+			// Act.
+			var retrievedBook = Book.FindOneByID(book.ID);
+			retrievedBook.Save();
+
+			// Assert.
+			Assert.That(Book.FindAll().Count(), Is.EqualTo(1));
+			Assert.That(
+				Book.GetCollection().FindOneAs<BsonDocument>(Query.EQ("_id", book.ID))["_t"].AsString, 
+				Is.EqualTo("Book"));
+		}
+
+		[Test, ExpectedException]
+		public void ReferencesManyAssociationsMustBeDeclaredVirtual()
+		{
+			// Arrange.
+			var book = Book.Create(new Book { Title = "The Quiet American" });
+
+			// Act.
+			AuthorWithNonVirtualBooks.Create(new AuthorWithNonVirtualBooks
+			{
+				FirstName = "Graham",
+				LastName = "Greene",
+				Books = new List<Book> { book }
+			});
+		}
+
+		[Test]
+		public void ReferencesManyRelationsOnlySerializeIDsToDatabase()
+		{
+			// Arrange.
+			var book1 = Book.Create(new Book { Title = "The Quiet American" });
+			var book2 = Book.Create(new Book { Title = "The Great Gatsby" });
+			var author = Author.Create(new Author
+			{
+				FirstName = "Graham",
+				LastName = "Greene",
+				Books = new List<Book> { book1, book2 }
+			});
+
+			// Act.
+			var result = Author.GetCollection().FindOneAs<BsonDocument>(Query.EQ("_id", author.ID));
+
+			// Assert.
+			Assert.That(result["Books"].AsBsonArray.RawValues, Contains.Item(book1.ID));
+			Assert.That(result["Books"].AsBsonArray.RawValues, Contains.Item(book2.ID));
+		}
+
+		[Test]
+		public void ReferencesManyRelationsAreLazyLoaded()
+		{
+			// Arrange.
+			var book1 = Book.Create(new Book { Title = "The Quiet American" });
+			var book2 = Book.Create(new Book { Title = "The Great Gatsby" });
+			var author = Author.Create(new Author
+			{
+				FirstName = "Graham",
+				LastName = "Greene",
+				Books = new List<Book> { book1, book2 }
+			});
+
+			// Act.
+			var retrievedAuthor = (Author) Author.FindOneByID(author.ID);
+
+			// Assert.
+			Assert.That(retrievedAuthor.Books, Is.Not.Null);
+			Assert.That(retrievedAuthor.Books, Contains.Item(book1));
+			Assert.That(retrievedAuthor.Books, Contains.Item(book2));
+		}
+
+		[Test]
+		public void ReferencesManyWitNullReferenceWorks()
+		{
+			// Arrange.
+			var author = Author.Create(new Author
+			{
+				FirstName = "Graham",
+				LastName = "Greene",
+				Books = null
+			});
+
+			// Act.
+			var retrievedAuthor = (Author)Author.FindOneByID(author.ID);
+
+			// Assert.
+			Assert.That(retrievedAuthor.Books, Is.Null);
 		}
 
 		#endregion

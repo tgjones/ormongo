@@ -9,6 +9,8 @@ namespace Ormongo.Internal.Serialization
 		{
 			if (ReflectionUtility.IsSubclassOfRawGeneric(typeof(Document<>), type))
 				return new DocumentSerializer();
+			if (ReflectionUtility.IsListOfRawGeneric(typeof(Document<>), type))
+				return new RelationCollectionSerializer();
 			if (ReflectionUtility.IsSubclassOfRawGeneric(typeof(EmbeddedDocumentWithID<>), type))
 				return new EmbeddedDocumentWithIDSerializer();
 			if (ReflectionUtility.IsSubclassOfRawGeneric(typeof(EmbeddedDocument<>), type))

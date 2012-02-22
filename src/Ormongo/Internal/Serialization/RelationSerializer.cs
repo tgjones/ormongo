@@ -7,13 +7,13 @@ using Ormongo.Internal.Proxying;
 
 namespace Ormongo.Internal.Serialization
 {
-	public class RelationalDocumentSerializer : BsonBaseSerializer
+	public class RelationSerializer : BsonBaseSerializer
 	{
-		private static RelationalDocumentSerializer _instance;
+		private static RelationSerializer _instance;
 
-		public static RelationalDocumentSerializer Instance
+		public static RelationSerializer Instance
 		{
-			get { return _instance ?? (_instance = new RelationalDocumentSerializer()); }
+			get { return _instance ?? (_instance = new RelationSerializer()); }
 		}
 
 		public override object Deserialize(BsonReader bsonReader, Type nominalType, IBsonSerializationOptions options)

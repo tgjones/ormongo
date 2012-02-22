@@ -53,4 +53,14 @@ namespace Ormongo.Tests
 		public string Title { get; set; }
 		public virtual Person Author { get; set; }
 	}
+
+	public class AuthorWithNonVirtualBooks : Person
+	{
+		public List<Book> Books { get; set; }
+	}
+
+	public class Author : Person
+	{
+		public virtual List<Book> Books { get; set; }
+	}
 }

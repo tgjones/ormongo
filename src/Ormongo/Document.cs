@@ -339,19 +339,28 @@ namespace Ormongo
 
 		#region Equality
 
+		public static bool operator==(Document<T> left, Document<T> right)
+		{
+			if (ReferenceEquals(left, null))
+				return ReferenceEquals(right, null);
+			return left.Equals(right);
+		}
+
+		public static bool operator !=(Document<T> left, Document<T> right)
+		{
+			return !(left == right);
+		}
+
 		public override bool Equals(object obj)
 		{
-			if (this == obj)
-				return true;
-
-			if (obj == null)
+			if (ReferenceEquals(obj, null))
 				return false;
 
 			if (!ProxyManager.AreSameTypes(obj.GetType(), GetType()))
 				return false;
 
 			var document = obj as Document<T>;
-			if (document == null)
+			if (ReferenceEquals(document, null))
 				return false;
 
 			if (!IsNewRecord && !document.IsNewRecord)
@@ -369,10 +378,16 @@ namespace Ormongo
 
 		#region Lazy loading
 
-		private readonly Dictionary<string, ObjectId> _relationalIDs = new Dictionary<string, ObjectId>();
-		Dictionary<string, ObjectId> IDocument.RelationalIDs
+		private readonly Dictionary<string, ObjectId> _referencesOneIDs = new Dictionary<string, ObjectId>();
+		Dictionary<string, ObjectId> IDocument.ReferencesOneIDs
 		{
-			get { return _relationalIDs; }
+			get { return _referencesOneIDs; }
+		}
+
+		private readonly Dictionary<string, List<ObjectId>> _referencesManyIDs = new Dictionary<string, List<ObjectId>>();
+		Dictionary<string, List<ObjectId>> IDocument.ReferencesManyIDs
+		{
+			get { return _referencesManyIDs; }
 		}
 
 		#endregion
