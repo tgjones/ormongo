@@ -37,6 +37,26 @@ namespace Ormongo.Tests
 		}
 
 		[Test]
+		public void CanSaveAndLoadNullEmbeddedDocument()
+		{
+			// Arrange.
+			var person = new Person
+			{
+				FirstName = "Tim",
+				LastName = "Jones",
+				Address = null
+			};
+
+			// Act.
+			person.Save();
+
+			// Assert.
+			Assert.That(Person.GetCollection().Count(), Is.EqualTo(1));
+			Assert.That(Person.GetCollection().FindOne().ID, Is.EqualTo(person.ID));
+			Assert.That(Person.GetCollection().FindOne().Address, Is.Null);
+		}
+
+		[Test]
 		public void CanSaveEmbeddedDocument()
 		{
 			// Arrange.

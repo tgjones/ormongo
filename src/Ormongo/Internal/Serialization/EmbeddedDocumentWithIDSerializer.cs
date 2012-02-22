@@ -9,10 +9,13 @@ namespace Ormongo.Internal.Serialization
 	{
 		public override void Serialize(BsonWriter bsonWriter, Type nominalType, object value, IBsonSerializationOptions options)
 		{
-			var idPropertyInfo = value.GetType().GetProperty("ID");
-			var id = (ObjectId) idPropertyInfo.GetValue(value, null);
-			if (id == ObjectId.Empty)
-				idPropertyInfo.SetValue(value, ObjectId.GenerateNewId(), null);
+			if (value != null)
+			{
+				var idPropertyInfo = value.GetType().GetProperty("ID");
+				var id = (ObjectId) idPropertyInfo.GetValue(value, null);
+				if (id == ObjectId.Empty)
+					idPropertyInfo.SetValue(value, ObjectId.GenerateNewId(), null);
+			}
 
 			base.Serialize(bsonWriter, nominalType, value, options);
 		}

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using FluentMongo.Linq;
 using MongoDB.Bson;
+using MongoDB.Driver.Builders;
 using NUnit.Framework;
 
 namespace Ormongo.Tests
@@ -377,6 +378,107 @@ namespace Ormongo.Tests
 
 			// Act / Assert.
 			Assert.That(post1.Equals(post2), Is.True);
+		}
+
+		[Test]
+		public void ObjectsWithEmptyIDsAreNotEqualUsingEqualsMethod()
+		{
+			// Arrange.
+			var post1 = new BlogPost();
+			var post2 = new BlogPost();
+
+			// Act / Assert.
+			Assert.That(post1.Equals(post2), Is.False);
+		}
+
+		#endregion
+
+		#region Lazy loading
+
+		[Test, ExpectedException]
+		public void ReferencesOneRelationsThrowExceptionIfRelationIsNotSavedFirst()
+		{
+			// Arrange.
+			var person = new Person
+			{
+				FirstName = "Graham",
+				LastName = "Greene"
+			};
+
+			// Act.
+			var book = Book.Create(new Book
+			{
+				Title = "The Quiet American",
+				Author = person
+			});
+		}
+
+		[Test]
+		public void ReferencesOneRelationsOnlySerializeIDToDatabase()
+		{
+			// Arrange.
+			var person = Person.Create(new Person
+			{
+				FirstName = "Graham",
+				LastName = "Greene"
+			});
+			var book = Book.Create(new Book
+			{
+				Title = "The Quiet American",
+				Author = person
+			});
+
+			// Act.
+			var result = Book.GetCollection().FindOneAs<BsonDocument>(Query.EQ("_id", book.ID));
+
+			// Assert.
+			Assert.That(result["Author"].AsObjectId, Is.EqualTo(person.ID));
+		}
+
+		private class BookWithNonVirtualAuthor : Document<BookWithNonVirtualAuthor>
+		{
+			public string Title { get; set; }
+			public Person Author { get; set; }
+		}
+
+		[Test, ExpectedException]
+		public void RelationalAssociationsMustBeDeclaredVirtual()
+		{
+			// Arrange.
+			var person = Person.Create(new Person
+			{
+				FirstName = "Graham",
+				LastName = "Greene"
+			});
+
+			// Act.
+			BookWithNonVirtualAuthor.Create(new BookWithNonVirtualAuthor
+			{
+				Title = "The Quiet American",
+				Author = person
+			});
+		}
+
+		[Test]
+		public void ReferencesOneRelationsAreLazyLoaded()
+		{
+			// Arrange.
+			var person = Person.Create(new Person
+			{
+				FirstName = "Graham",
+				LastName = "Greene"
+			});
+			var book = Book.Create(new Book
+			{
+				Title = "The Quiet American",
+				Author = person
+			});
+
+			// Act.
+			var retrievedBook = Book.FindOneByID(book.ID);
+
+			// Assert.
+			Assert.That(retrievedBook.Author, Is.EqualTo(person));
 		}
 
 		#endregion

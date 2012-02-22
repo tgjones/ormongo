@@ -9,6 +9,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using MongoDB.Driver.Builders;
 using Ormongo.Internal;
+using Ormongo.Internal.Proxying;
 using Ormongo.Plugins;
 
 namespace Ormongo
@@ -60,11 +61,12 @@ namespace Ormongo
 			get { return !(IsNewRecord || IsDestroyed); }
 		}
 
+		[BsonIgnore]
 		public bool IsDestroyed { get; private set; }
 
 		internal static MongoCollection<T> GetCollection()
 		{
-			string collectionName = typeof (T).Name;
+			string collectionName = CollectionUtility.GetCollectionName(typeof(T));
 			return OrmongoConfiguration.GetMongoDatabase().GetCollection<T>(collectionName);
 		}
 
@@ -339,16 +341,38 @@ namespace Ormongo
 
 		public override bool Equals(object obj)
 		{
+			if (this == obj)
+				return true;
+
+			if (obj == null)
+				return false;
+
+			if (!ProxyManager.AreSameTypes(obj.GetType(), GetType()))
+				return false;
+
 			var document = obj as Document<T>;
 			if (document == null)
 				return false;
 
-			return ID == document.ID;
+			if (!IsNewRecord && !document.IsNewRecord)
+				return ID == document.ID;
+			
+			return ReferenceEquals(this, document);
 		}
 
 		public override int GetHashCode()
 		{
 			return ID.GetHashCode();
+		}
+
+		#endregion
+
+		#region Lazy loading
+
+		private readonly Dictionary<string, ObjectId> _relationalIDs = new Dictionary<string, ObjectId>();
+		Dictionary<string, ObjectId> IDocument.RelationalIDs
+		{
+			get { return _relationalIDs; }
 		}
 
 		#endregion

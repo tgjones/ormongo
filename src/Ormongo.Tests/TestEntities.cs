@@ -47,4 +47,10 @@ namespace Ormongo.Tests
 		public string State { get; set; }
 		public string Postcode { get; set; }
 	}
+
+	public class Book : Document<Book>
+	{
+		public string Title { get; set; }
+		public virtual Person Author { get; set; }
+	}
 }
