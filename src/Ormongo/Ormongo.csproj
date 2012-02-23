@@ -59,11 +59,9 @@
   <ItemGroup>
     <Compile Include="Attachment.cs" />
     <Compile Include="AttachmentDeletingEventArgs.cs" />
-    <Compile Include="CancelDocumentEventArgs.cs" />
     <Compile Include="DatabaseStatistics.cs" />
     <Compile Include="EmbeddedDocument.cs" />
     <Compile Include="Document.cs" />
-    <Compile Include="DocumentEventArgs.cs" />
     <Compile Include="EmbeddedDocumentWithID.cs" />
     <Compile Include="Internal\CollectionUtility.cs" />
     <Compile Include="Internal\EmbeddedDocumentUtility.cs" />

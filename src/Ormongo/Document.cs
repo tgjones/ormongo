@@ -338,15 +338,25 @@ namespace Ormongo
 			OnAfterFind();
 		}
 
-		protected void ExecuteObservers(Action<IObserver<T>> callback)
+		private void ExecuteObservers(Action<IObserver<T>> callback)
 		{
-			foreach (var observer in Observers)
+			ExecuteObservers<IObserver<T>>(callback);
+		}
+
+		protected void ExecuteObservers<TObserver>(Action<TObserver> callback)
+		{
+			foreach (var observer in Observers.OfType<TObserver>())
 				callback(observer);
 		}
 
-		protected bool ExecuteCancellableObservers(Func<IObserver<T>, bool> callback)
+		private bool ExecuteCancellableObservers(Func<IObserver<T>, bool> callback)
 		{
-			return Observers.All(callback);
+			return ExecuteCancellableObservers<IObserver<T>>(callback);
+		}
+
+		protected bool ExecuteCancellableObservers<TObserver>(Func<TObserver, bool> callback)
+		{
+			return Observers.OfType<TObserver>().All(callback);
 		}
 
 		#endregion
