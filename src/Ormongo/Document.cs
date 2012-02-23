@@ -21,6 +21,7 @@ namespace Ormongo
 
 		#region Events
 
+		public static EventHandler<DocumentEventArgs<T>> AfterInitialize;
 		public static EventHandler<CancelDocumentEventArgs<T>> BeforeCreate;
 		public static EventHandler<DocumentEventArgs<T>> AfterCreate;
 		public static EventHandler<CancelDocumentEventArgs<T>> BeforeUpdate;
@@ -73,6 +74,11 @@ namespace Ormongo
 		private static IMongoQuery GetIDQuery(ObjectId id)
 		{
 			return Query.EQ("_id", id);
+		}
+
+		public Document()
+		{
+			OnAfterInitialize(new DocumentEventArgs<T>((T) this));
 		}
 
 		#region Persistence
@@ -170,6 +176,12 @@ namespace Ormongo
 		public static T FindOneByID(ObjectId id)
 		{
 			return GetCollection().FindOneById(id);
+		}
+
+		public static TDerived FindOneByID<TDerived>(ObjectId id)
+			where TDerived : T
+		{
+			return (TDerived) GetCollection().FindOneById(id);
 		}
 
 		public static T FindOne(Expression<Func<T, bool>> predicate)
@@ -289,11 +301,17 @@ namespace Ormongo
 
 		#region Callbacks
 
+		private void OnAfterInitialize(DocumentEventArgs<T> args)
+		{
+			// Not virtual because we call it from constructor.
+			if (AfterInitialize != null)
+				AfterInitialize(this, args);
+		}
+
 		protected virtual void OnBeforeSave(CancelDocumentEventArgs<T> args)
 		{
 			PluginManager.Execute(p => p.BeforeSave(this));
-			if (BeforeSave != null)
-				BeforeSave(this, args);
+			InvokeCancellableEvent(BeforeSave, args);
 		}
 
 		protected virtual void OnAfterSave(DocumentEventArgs<T> args)
@@ -306,8 +324,7 @@ namespace Ormongo
 		protected virtual void OnBeforeCreate(CancelDocumentEventArgs<T> args)
 		{
 			PluginManager.Execute(p => p.BeforeCreate(this));
-			if (BeforeCreate != null)
-				BeforeCreate(this, args);
+			InvokeCancellableEvent(BeforeCreate, args);
 		}
 
 		protected virtual void OnAfterCreate(DocumentEventArgs<T> args)
@@ -320,8 +337,7 @@ namespace Ormongo
 		protected virtual void OnBeforeUpdate(CancelDocumentEventArgs<T> args)
 		{
 			PluginManager.Execute(p => p.BeforeUpdate(this));
-			if (BeforeUpdate != null)
-				BeforeUpdate(this, args);
+			InvokeCancellableEvent(BeforeUpdate, args);
 		}
 
 		protected virtual void OnAfterUpdate(DocumentEventArgs<T> args)
@@ -334,8 +350,7 @@ namespace Ormongo
 		protected virtual void OnBeforeDestroy(CancelDocumentEventArgs<T> args)
 		{
 			PluginManager.Execute(p => p.BeforeDestroy(this));
-			if (BeforeDestroy != null)
-				BeforeDestroy(this, args);
+			InvokeCancellableEvent(BeforeDestroy, args);
 		}
 
 		protected virtual void OnAfterDestroy(DocumentEventArgs<T> args)
@@ -345,14 +360,28 @@ namespace Ormongo
 				AfterDestroy(this, args);
 		}
 
-		protected virtual void AfterFind(DocumentEventArgs<T> args)
+		protected virtual void OnAfterFind(DocumentEventArgs<T> args)
 		{
 			PluginManager.Execute(p => p.AfterFind(this));
 		}
 
 		void IDocument.AfterFind()
 		{
-			AfterFind(new DocumentEventArgs<T>((T) this));
+			OnAfterFind(new DocumentEventArgs<T>((T) this));
+		}
+
+		protected void InvokeCancellableEvent<TE>(EventHandler<TE> eventHandler, TE args)
+			where TE : CancelDocumentEventArgs<T>
+		{
+			if (eventHandler == null)
+				return;
+
+			foreach (EventHandler<TE> handler in eventHandler.GetInvocationList())
+			{
+				handler(this, args);
+				if (args.Cancel)
+					return;
+			}
 		}
 
 		#endregion
