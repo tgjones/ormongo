@@ -82,12 +82,9 @@
     <Compile Include="Internal\Serialization\RelationCollectionSerializer.cs" />
     <Compile Include="Internal\Serialization\RelationSerializer.cs" />
     <Compile Include="Internal\Serialization\SerializationProvider.cs" />
+    <Compile Include="IObserver.cs" />
+    <Compile Include="Observer.cs" />
     <Compile Include="OrmongoConfiguration.cs" />
-    <Compile Include="Plugins\EmbeddedDocumentPlugin.cs" />
-    <Compile Include="Plugins\IPlugin.cs" />
-    <Compile Include="Plugins\PluginBase.cs" />
-    <Compile Include="Plugins\PluginManager.cs" />
-    <Compile Include="Plugins\ValidationPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Relation.cs" />
   </ItemGroup>

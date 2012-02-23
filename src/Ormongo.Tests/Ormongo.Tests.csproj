@@ -72,7 +72,6 @@
     <Compile Include="Internal\EmbeddedDocumentUtilityTests.cs" />
     <Compile Include="Internal\ExpressionUtilityTests.cs" />
     <Compile Include="MongoTestServerSetup.cs" />
-    <Compile Include="Plugins\PluginManagerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DocumentTests.cs" />
     <Compile Include="TestsBase.cs" />
