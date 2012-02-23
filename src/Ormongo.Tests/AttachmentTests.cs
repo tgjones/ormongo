@@ -146,7 +146,7 @@ namespace Ormongo.Tests
 			asset.Save();
 
 			// Act.
-			Asset theAsset = Asset.FindOneByID(asset.ID);
+			Asset theAsset = Asset.Find(asset.ID);
 
 			// Assert.
 			Assert.That(theAsset.File.IsLoaded, Is.False);
@@ -161,7 +161,7 @@ namespace Ormongo.Tests
 			asset.Save();
 
 			// Act.
-			Asset theAsset = Asset.FindOneByID(asset.ID);
+			Asset theAsset = Asset.Find(asset.ID);
 			string fileName = theAsset.File.FileName;
 
 			// Assert.
@@ -180,7 +180,7 @@ namespace Ormongo.Tests
 			asset.Save();
 
 			// Act.
-			Asset theAsset = Asset.FindOneByID(asset.ID);
+			Asset theAsset = Asset.Find(asset.ID);
 			string contentType = theAsset.File.ContentType;
 
 			// Assert.
@@ -199,7 +199,7 @@ namespace Ormongo.Tests
 			asset.Save();
 
 			// Act.
-			Asset theAsset = Asset.FindOneByID(asset.ID);
+			Asset theAsset = Asset.Find(asset.ID);
 			Stream content = theAsset.File.Content;
 
 			// Assert.

@@ -44,7 +44,7 @@ namespace Ormongo.Tests
 			});
 
 			// Act.
-			BlogPost retrievedPost = BlogPost.FindAll().First();
+			BlogPost retrievedPost = BlogPost.All().First();
 
 			// Assert.
 			Assert.That(retrievedPost.ID, Is.EqualTo(post2.ID));
@@ -93,7 +93,7 @@ namespace Ormongo.Tests
 			BlogPost.Delete(post.ID);
 
 			// Assert.
-			Assert.That(BlogPost.FindAll().Count(), Is.EqualTo(0));
+			Assert.That(BlogPost.All().Count(), Is.EqualTo(0));
 		}
 
 		[Test]
@@ -106,11 +106,11 @@ namespace Ormongo.Tests
 			post2.Save();
 
 			// Act.
-			Assert.That(BlogPost.FindAll().Count(), Is.EqualTo(2));
+			Assert.That(BlogPost.All().Count(), Is.EqualTo(2));
 			BlogPost.DeleteAll();
 
 			// Assert.
-			Assert.That(BlogPost.FindAll().Count(), Is.EqualTo(0));
+			Assert.That(BlogPost.All().Count(), Is.EqualTo(0));
 		}
 
 		[Test]
@@ -123,7 +123,7 @@ namespace Ormongo.Tests
 			post2.Save();
 
 			// Act.
-			var blogPosts = BlogPost.Find(u => u.Title == "My Blog Post");
+			var blogPosts = BlogPost.Where(u => u.Title == "My Blog Post");
 
 			// Assert.
 			Assert.That(blogPosts, Is.Not.Null);
@@ -138,7 +138,7 @@ namespace Ormongo.Tests
 			post.Save();
 
 			// Act.
-			BlogPost myPost = BlogPost.FindOne(u => u.Title == "My Blog Post");
+			BlogPost myPost = BlogPost.Find(u => u.Title == "My Blog Post");
 
 			// Assert.
 			Assert.That(myPost, Is.Not.Null);
@@ -149,7 +149,7 @@ namespace Ormongo.Tests
 		public void FindOneReturnsNullIfNoMatch()
 		{
 			// Act.
-			BlogPost myPost = BlogPost.FindOne(u => u.Title == "My Blog Post");
+			BlogPost myPost = BlogPost.Find(u => u.Title == "My Blog Post");
 
 			// Assert.
 			Assert.That(myPost, Is.Null);
@@ -163,7 +163,7 @@ namespace Ormongo.Tests
 			post.Save();
 
 			// Act.
-			BlogPost myPost = BlogPost.FindOneByID(post.ID);
+			BlogPost myPost = BlogPost.Find(post.ID);
 
 			// Assert.
 			Assert.That(myPost.Text, Is.EqualTo("Some text"));
@@ -179,7 +179,7 @@ namespace Ormongo.Tests
 			post2.Save();
 
 			// Act.
-			var allPosts = BlogPost.FindAll();
+			var allPosts = BlogPost.All();
 
 			// Assert.
 			Assert.That(allPosts.Count(), Is.EqualTo(2));
@@ -197,7 +197,7 @@ namespace Ormongo.Tests
 			post2.Save();
 
 			// Act.
-			var matchingPosts = BlogPost.Find(bp => bp.Authors.Contains(authorID)).QueryDump(Log).ToList();
+			var matchingPosts = BlogPost.Where(bp => bp.Authors.Contains(authorID)).QueryDump(Log).ToList();
 
 			// Assert.
 			Assert.That(matchingPosts.Count, Is.EqualTo(1));
@@ -221,7 +221,7 @@ namespace Ormongo.Tests
 			BlogPost.Push(post.ID, p => p.Comments, comment);
 
 			// Assert.
-			BlogPost myPost = BlogPost.FindOneByID(post.ID);
+			BlogPost myPost = BlogPost.Find(post.ID);
 			Assert.That(myPost.Comments.Count, Is.EqualTo(1));
 			Assert.That(myPost.Comments[0].Name, Is.EqualTo("Tim Jones"));
 		}
@@ -242,7 +242,7 @@ namespace Ormongo.Tests
 			BlogPost.Pull(post.ID, p => p.Comments, c => c.Name == "Tim Jones");
 
 			// Assert.
-			BlogPost myPost = BlogPost.FindOneByID(post.ID);
+			BlogPost myPost = BlogPost.Find(post.ID);
 			Assert.That(myPost.Comments.Count, Is.EqualTo(0));
 		}
 
@@ -259,7 +259,7 @@ namespace Ormongo.Tests
 
 			// Assert.
 			Assert.That(post.ReadCount, Is.EqualTo(4));
-			Assert.That(BlogPost.FindOneByID(post.ID).ReadCount, Is.EqualTo(4));
+			Assert.That(BlogPost.Find(post.ID).ReadCount, Is.EqualTo(4));
 		}
 
 		#endregion
@@ -287,7 +287,7 @@ namespace Ormongo.Tests
 			post.Save();
 
 			// Assert.
-			Assert.That(BlogPost.FindAll().Count(), Is.EqualTo(1));
+			Assert.That(BlogPost.All().Count(), Is.EqualTo(1));
 		}
 
 		[Test]
@@ -348,8 +348,8 @@ namespace Ormongo.Tests
 			var dog = Animal.Create(new Dog());
 
 			// Assert.
-			Assert.That(Animal.FindOneByID(dog.ID), Is.Not.Null);
-			Assert.That(Animal.FindOneByID(dog.ID), Is.InstanceOf<Dog>());
+			Assert.That(Animal.Find(dog.ID), Is.Not.Null);
+			Assert.That(Animal.Find(dog.ID), Is.InstanceOf<Dog>());
 		}
 
 		#endregion
@@ -487,7 +487,7 @@ namespace Ormongo.Tests
 			});
 
 			// Act.
-			var retrievedBook = Book.FindOneByID(book.ID);
+			var retrievedBook = Book.Find(book.ID);
 
 			// Assert.
 			Assert.That(retrievedBook.Author, Is.EqualTo(person));
@@ -504,7 +504,7 @@ namespace Ormongo.Tests
 			});
 
 			// Act.
-			var retrievedBook = Book.FindOneByID(book.ID);
+			var retrievedBook = Book.Find(book.ID);
 
 			// Assert.
 			Assert.That(retrievedBook.Author, Is.Null);
@@ -521,11 +521,11 @@ namespace Ormongo.Tests
 			});
 
 			// Act.
-			var retrievedBook = Book.FindOneByID(book.ID);
+			var retrievedBook = Book.Find(book.ID);
 			retrievedBook.Save();
 
 			// Assert.
-			Assert.That(Book.FindAll().Count(), Is.EqualTo(1));
+			Assert.That(Book.All().Count(), Is.EqualTo(1));
 			Assert.That(
 				Book.GetCollection().FindOneAs<BsonDocument>(Query.EQ("_id", book.ID))["_t"].AsString, 
 				Is.EqualTo("Book"));
@@ -581,7 +581,7 @@ namespace Ormongo.Tests
 			});
 
 			// Act.
-			var retrievedAuthor = (Author) Author.FindOneByID(author.ID);
+			var retrievedAuthor = (Author) Author.Find(author.ID);
 
 			// Assert.
 			Assert.That(retrievedAuthor.Books, Is.Not.Null);
@@ -601,7 +601,7 @@ namespace Ormongo.Tests
 			});
 
 			// Act.
-			var retrievedAuthor = (Author)Author.FindOneByID(author.ID);
+			var retrievedAuthor = (Author)Author.Find(author.ID);
 
 			// Assert.
 			Assert.That(retrievedAuthor.Books, Is.Null);
@@ -621,7 +621,7 @@ namespace Ormongo.Tests
 			});
 
 			// Act.
-			var retrievedAuthor = (Author)Author.FindOneByID(author.ID);
+			var retrievedAuthor = (Author)Author.Find(author.ID);
 			retrievedAuthor.Books = new List<Book>
 			{
 				retrievedAuthor.Books[1],
@@ -630,7 +630,7 @@ namespace Ormongo.Tests
 			retrievedAuthor.Save();
 
 			// Assert.
-			var retrievedAuthor2 = (Author)Author.FindOneByID(author.ID);
+			var retrievedAuthor2 = (Author)Author.Find(author.ID);
 			Assert.That(retrievedAuthor2.Books, Is.Not.Null);
 			Assert.That(retrievedAuthor2.Books, Contains.Item(book1));
 			Assert.That(retrievedAuthor2.Books, Contains.Item(book2));

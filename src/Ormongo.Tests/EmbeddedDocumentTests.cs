@@ -104,7 +104,7 @@ namespace Ormongo.Tests
 			person.Save();
 
 			// Act.
-			Person myPerson = Person.FindOneByID(person.ID);
+			Person myPerson = Person.Find(person.ID);
 			
 			// Assert.
 			Assert.That(myPerson.Address.Parent, Is.EqualTo(myPerson));

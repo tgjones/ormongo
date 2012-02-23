@@ -147,7 +147,7 @@ namespace Ormongo
 
 		public static void DestroyAll()
 		{
-			foreach (var item in FindAll())
+			foreach (var item in All())
 				item.Destroy();
 		}
 
@@ -173,33 +173,33 @@ namespace Ormongo
 
 		#region Querying
 
-		public static T FindOneByID(ObjectId id)
+		public static T Find(ObjectId id)
 		{
 			return GetCollection().FindOneById(id);
 		}
 
-		public static TDerived FindOneByID<TDerived>(ObjectId id)
+		public static TDerived Find<TDerived>(ObjectId id)
 			where TDerived : T
 		{
-			return (TDerived) GetCollection().FindOneById(id);
+			return (TDerived) Find(id);
 		}
 
-		public static T FindOne(Expression<Func<T, bool>> predicate)
+		public static T Find(Expression<Func<T, bool>> predicate)
 		{
-			return FindAll().SingleOrDefault(predicate);
+			return All().SingleOrDefault(predicate);
 		}
 
-		public static IQueryable<T> Find(Expression<Func<T, bool>> predicate)
+		public static IQueryable<T> Where(Expression<Func<T, bool>> predicate)
 		{
-			return FindAll().Where(predicate);
+			return All().Where(predicate);
 		}
 
-		public static IQueryable<T> FindAll()
+		public static IQueryable<T> All()
 		{
 			return ApplyDefaultScope(GetCollection().AsQueryable());
 		}
 
-		public static IEnumerable<T> FindNear<TProperty>(Expression<Func<T, TProperty>> expression,
+		public static IEnumerable<T> Near<TProperty>(Expression<Func<T, TProperty>> expression,
 			double x, double y, double maxDistance, int limit)
 		{
 			var query = Query.Near(ExpressionUtility.GetPropertyName(expression), x, y, maxDistance);
