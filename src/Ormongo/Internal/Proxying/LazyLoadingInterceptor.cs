@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Castle.DynamicProxy;
 using MongoDB.Bson;
@@ -7,6 +8,8 @@ namespace Ormongo.Internal.Proxying
 {
 	internal class LazyLoadingInterceptor : IInterceptor
 	{
+		private readonly List<string> _loadedProperties = new List<string>();
+
 		public void Intercept(IInvocation invocation)
 		{
 			var document = invocation.InvocationTarget as IDocument;
@@ -17,17 +20,21 @@ namespace Ormongo.Internal.Proxying
 					ReflectionUtility.IsSubclassOfRawGeneric(typeof(Document<>), invocation.Method.ReturnType))
 				{
 					var propertyName = invocation.Method.Name.Substring(4);
-					if (document.ReferencesOneIDs.ContainsKey(propertyName))
+					if (!_loadedProperties.Contains(propertyName))
 					{
-						var otherID = document.ReferencesOneIDs[propertyName];
+						if (document.ReferencesOneIDs.ContainsKey(propertyName))
+						{
+							var otherID = document.ReferencesOneIDs[propertyName];
 
-						var otherType = invocation.Method.ReturnType;
-						var other = OrmongoConfiguration.GetMongoDatabase()
-							.GetCollection(CollectionUtility.GetCollectionName(otherType))
-							.FindOneByIdAs(otherType, otherID);
+							var otherType = invocation.Method.ReturnType;
+							var other = OrmongoConfiguration.GetMongoDatabase()
+								.GetCollection(CollectionUtility.GetCollectionName(otherType))
+								.FindOneByIdAs(otherType, otherID);
 
-						var propertySetter = document.GetType().GetProperty(propertyName);
-						propertySetter.SetValue(document, other, null);
+							var propertySetter = document.GetType().GetProperty(propertyName);
+							propertySetter.SetValue(document, other, null);
+						}
+						_loadedProperties.Add(propertyName);
 					}
 				}
 
@@ -36,19 +43,23 @@ namespace Ormongo.Internal.Proxying
 					ReflectionUtility.IsListOfRawGeneric(typeof(Document<>), invocation.Method.ReturnType))
 				{
 					var propertyName = invocation.Method.Name.Substring(4);
-					if (document.ReferencesManyIDs.ContainsKey(propertyName))
+					if (!_loadedProperties.Contains(propertyName))
 					{
-						var otherIDs = document.ReferencesManyIDs[propertyName];
-						var otherIDsBson = otherIDs.Select(id => BsonValue.Create(id));
+						if (document.ReferencesManyIDs.ContainsKey(propertyName))
+						{
+							var otherIDs = document.ReferencesManyIDs[propertyName];
+							var otherIDsBson = otherIDs.Select(id => BsonValue.Create(id));
 
-						var otherType = ReflectionUtility.GetTypeOfGenericList(invocation.Method.ReturnType);
-						var other = OrmongoConfiguration.GetMongoDatabase()
-							.GetCollection(CollectionUtility.GetCollectionName(otherType))
-							.FindAs(otherType, Query.In("_id", otherIDsBson))
-							.Cast(otherType).ToList(otherType);
+							var otherType = ReflectionUtility.GetTypeOfGenericList(invocation.Method.ReturnType);
+							var other = OrmongoConfiguration.GetMongoDatabase()
+								.GetCollection(CollectionUtility.GetCollectionName(otherType))
+								.FindAs(otherType, Query.In("_id", otherIDsBson))
+								.Cast(otherType).ToList(otherType);
 
-						var propertySetter = document.GetType().GetProperty(propertyName);
-						propertySetter.SetValue(document, other, null);
+							var propertySetter = document.GetType().GetProperty(propertyName);
+							propertySetter.SetValue(document, other, null);
+						}
+						_loadedProperties.Add(propertyName);
 					}
 				}
 			}

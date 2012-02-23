@@ -21,13 +21,13 @@ namespace Ormongo
 
 		#region Events
 
-		public static EventHandler<DocumentEventArgs<T>> BeforeCreate;
+		public static EventHandler<CancelDocumentEventArgs<T>> BeforeCreate;
 		public static EventHandler<DocumentEventArgs<T>> AfterCreate;
-		public static EventHandler<DocumentEventArgs<T>> BeforeUpdate;
+		public static EventHandler<CancelDocumentEventArgs<T>> BeforeUpdate;
 		public static EventHandler<DocumentEventArgs<T>> AfterUpdate;
-		public static EventHandler<DocumentEventArgs<T>> BeforeSave;
+		public static EventHandler<CancelDocumentEventArgs<T>> BeforeSave;
 		public static EventHandler<DocumentEventArgs<T>> AfterSave;
-		public static EventHandler<DocumentEventArgs<T>> BeforeDestroy;
+		public static EventHandler<CancelDocumentEventArgs<T>> BeforeDestroy;
 		public static EventHandler<DocumentEventArgs<T>> AfterDestroy;
 
 		#endregion
@@ -92,20 +92,35 @@ namespace Ormongo
 
 		public void Save()
 		{
-			OnBeforeSave();
+			var beforeSaveEventArgs = new CancelDocumentEventArgs<T>((T) this);
+			OnBeforeSave(beforeSaveEventArgs);
+			if (beforeSaveEventArgs.Cancel)
+				return;
+
 			if (IsNewRecord)
 			{
-				OnBeforeCreate();
+				var beforeCreateEventArgs = new CancelDocumentEventArgs<T>((T) this);
+				OnBeforeCreate(beforeCreateEventArgs);
+				if (beforeCreateEventArgs.Cancel)
+					return;
+
 				GetCollection().Insert(this);
-				OnAfterCreate();
+
+				OnAfterCreate(new DocumentEventArgs<T>((T) this));
 			}
 			else
 			{
-				OnBeforeUpdate();
+				var beforeUpdateEventArgs = new CancelDocumentEventArgs<T>((T) this);
+				OnBeforeUpdate(beforeUpdateEventArgs);
+				if (beforeUpdateEventArgs.Cancel)
+					return;
+
 				GetCollection().Save(this);
-				OnAfterUpdate();
+
+				OnAfterUpdate(new DocumentEventArgs<T>((T) this));
 			}
-			OnAfterSave();
+
+			OnAfterSave(new DocumentEventArgs<T>((T) this));
 		}
 
 		public static T Create(T item)
@@ -137,10 +152,15 @@ namespace Ormongo
 
 		public void Destroy()
 		{
-			OnBeforeDestroy();
+			var beforeDestroyEventArgs = new CancelDocumentEventArgs<T>((T) this);
+			OnBeforeDestroy(beforeDestroyEventArgs);
+			if (beforeDestroyEventArgs.Cancel)
+				return;
+
 			Delete();
 			IsDestroyed = true;
-			OnAfterDestroy();
+
+			OnAfterDestroy(new DocumentEventArgs<T>((T) this));
 		}
 
 		#endregion
@@ -269,70 +289,70 @@ namespace Ormongo
 
 		#region Callbacks
 
-		protected virtual void OnBeforeSave()
+		protected virtual void OnBeforeSave(CancelDocumentEventArgs<T> args)
 		{
 			PluginManager.Execute(p => p.BeforeSave(this));
 			if (BeforeSave != null)
-				BeforeSave(this, new DocumentEventArgs<T>((T)this));
+				BeforeSave(this, args);
 		}
 
-		protected virtual void OnAfterSave()
+		protected virtual void OnAfterSave(DocumentEventArgs<T> args)
 		{
 			PluginManager.Execute(p => p.AfterSave(this));
 			if (AfterSave != null)
-				AfterSave(this, new DocumentEventArgs<T>((T) this));
+				AfterSave(this, args);
 		}
 
-		protected virtual void OnBeforeCreate()
+		protected virtual void OnBeforeCreate(CancelDocumentEventArgs<T> args)
 		{
 			PluginManager.Execute(p => p.BeforeCreate(this));
 			if (BeforeCreate != null)
-				BeforeCreate(this, new DocumentEventArgs<T>((T)this));
+				BeforeCreate(this, args);
 		}
 
-		protected virtual void OnAfterCreate()
+		protected virtual void OnAfterCreate(DocumentEventArgs<T> args)
 		{
 			PluginManager.Execute(p => p.AfterCreate(this));
 			if (AfterCreate != null)
-				AfterCreate(this, new DocumentEventArgs<T>((T)this));
+				AfterCreate(this, args);
 		}
 
-		protected virtual void OnBeforeUpdate()
+		protected virtual void OnBeforeUpdate(CancelDocumentEventArgs<T> args)
 		{
 			PluginManager.Execute(p => p.BeforeUpdate(this));
 			if (BeforeUpdate != null)
-				BeforeUpdate(this, new DocumentEventArgs<T>((T)this));
+				BeforeUpdate(this, args);
 		}
 
-		protected virtual void OnAfterUpdate()
+		protected virtual void OnAfterUpdate(DocumentEventArgs<T> args)
 		{
 			PluginManager.Execute(p => p.AfterUpdate(this));
 			if (AfterUpdate != null)
-				AfterUpdate(this, new DocumentEventArgs<T>((T)this));
+				AfterUpdate(this, args);
 		}
 
-		protected virtual void OnBeforeDestroy()
+		protected virtual void OnBeforeDestroy(CancelDocumentEventArgs<T> args)
 		{
 			PluginManager.Execute(p => p.BeforeDestroy(this));
 			if (BeforeDestroy != null)
-				BeforeDestroy(this, new DocumentEventArgs<T>((T)this));
+				BeforeDestroy(this, args);
 		}
 
-		protected virtual void OnAfterDestroy()
+		protected virtual void OnAfterDestroy(DocumentEventArgs<T> args)
 		{
 			PluginManager.Execute(p => p.AfterDestroy(this));
 			if (AfterDestroy != null)
-				AfterDestroy(this, new DocumentEventArgs<T>((T)this));
+				AfterDestroy(this, args);
 		}
 
-		protected virtual void AfterFind()
+		protected virtual void AfterFind(DocumentEventArgs<T> args)
 		{
 			PluginManager.Execute(p => p.AfterFind(this));
 		}
 
 		void IDocument.AfterFind()
 		{
-			AfterFind();
+			AfterFind(new DocumentEventArgs<T>((T) this));
 		}
 
 		#endregion

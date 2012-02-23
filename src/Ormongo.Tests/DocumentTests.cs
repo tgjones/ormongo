@@ -607,6 +607,35 @@ namespace Ormongo.Tests
 			Assert.That(retrievedAuthor.Books, Is.Null);
 		}
 
+		[Test]
+		public void ReferencesManyRelationProxiesCanBeSaved()
+		{
+			// Arrange.
+			var book1 = Book.Create(new Book { Title = "The Quiet American" });
+			var book2 = Book.Create(new Book { Title = "The Great Gatsby" });
+			var author = Author.Create(new Author
+			{
+				FirstName = "Graham",
+				LastName = "Greene",
+				Books = new List<Book> { book1, book2 }
+			});
+
+			// Act.
+			var retrievedAuthor = (Author)Author.FindOneByID(author.ID);
+			retrievedAuthor.Books = new List<Book>
+			{
+				retrievedAuthor.Books[1],
+				retrievedAuthor.Books[0]
+			};
+			retrievedAuthor.Save();
+
+			// Assert.
+			var retrievedAuthor2 = (Author)Author.FindOneByID(author.ID);
+			Assert.That(retrievedAuthor2.Books, Is.Not.Null);
+			Assert.That(retrievedAuthor2.Books, Contains.Item(book1));
+			Assert.That(retrievedAuthor2.Books, Contains.Item(book2));
+		}
+
 		#endregion
 	}
 }

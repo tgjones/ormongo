@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 
 namespace Ormongo
 {
@@ -7,6 +8,16 @@ namespace Ormongo
 		public T Document { get; private set; }
 
 		public DocumentEventArgs(T document)
+		{
+			Document = document;
+		}
+	}
+
+	public class CancelDocumentEventArgs<T> : CancelEventArgs
+	{
+		public T Document { get; private set; }
+
+		public CancelDocumentEventArgs(T document)
 		{
 			Document = document;
 		}
