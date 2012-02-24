@@ -51,11 +51,23 @@ namespace Ormongo
 			set { _contentType = value; }
 		}
 
-		private Attachment(Stream content, string fileName, string contentType)
+		private BsonDocument _metadata;
+		public BsonDocument Metadata
+		{
+			get
+			{
+				if (!IsLoaded)
+					Load();
+				return _metadata;
+			}
+		}
+
+		private Attachment(Stream content, string fileName, string contentType, BsonDocument metadata)
 		{
 			Content = content;
 			FileName = fileName;
 			ContentType = contentType;
+			_metadata = metadata;
 			IsLoaded = true;
 		}
 
@@ -71,19 +83,19 @@ namespace Ormongo
 			IsLoaded = false;
 		}
 
-		public static Attachment Create(Stream content, string fileName, string contentType)
+		public static Attachment Create(Stream content, string fileName, string contentType, BsonDocument metadata = null)
 		{
-			var result = new Attachment(content, fileName, contentType);
+			var result = new Attachment(content, fileName, contentType, metadata);
 			result.Save();
 			return result;
 		}
 
-		public static Attachment Create(string fileName, string contentType)
+		public static Attachment Create(string fileName, string contentType, BsonDocument metadata = null)
 		{
 			var fileInfo = new FileInfo(fileName);
 			using (var stream = fileInfo.OpenRead())
 			{
-				var result = new Attachment(stream, fileInfo.Name, contentType);
+				var result = new Attachment(stream, fileInfo.Name, contentType, metadata);
 				result.Save();
 				return result;
 			}
@@ -101,6 +113,7 @@ namespace Ormongo
 			Content = fileInfo.OpenRead();
 			ContentType = fileInfo.ContentType;
 			FileName = fileInfo.Name;
+			_metadata = fileInfo.Metadata;
 
 			IsLoaded = true;
 		}
@@ -146,7 +159,8 @@ namespace Ormongo
 			{
 				ContentType = ContentType,
 				Id = ID,
-				UploadDate = DateTime.UtcNow
+				UploadDate = DateTime.UtcNow,
+				Metadata = _metadata
 			};
 			gridFS.Upload(Content, FileName, options);
 		}

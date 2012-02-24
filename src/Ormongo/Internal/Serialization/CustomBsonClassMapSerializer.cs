@@ -149,7 +149,7 @@ namespace Ormongo.Internal.Serialization
 					nominalType = nominalType.GetGenericArguments()[0];
 				this.VerifyNominalType(nominalType);
 				// Added
-				Type type = value == null ? nominalType : ProxyManager.GetUnderlyingType(value.GetType());
+				Type type = value == null ? nominalType : ProxyManager.GetUnderlyingType(value);
 				// Added
 				BsonClassMap bsonClassMap = BsonClassMap.LookupClassMap(type);
 				bsonWriter.WriteStartDocument();

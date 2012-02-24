@@ -4,17 +4,17 @@ using Castle.DynamicProxy;
 
 namespace Ormongo.Internal.Proxying
 {
-	public static class ProxyManager
+	internal static class ProxyManager
 	{
 		private static readonly ProxyGenerator Generator = new ProxyGenerator();
 
-		internal static object GetProxy(Type type)
+		public static object GetProxy(Type type)
 		{
 			return Generator.CreateClassProxy(type, new[] { typeof(IProxy) }, 
 				new LazyLoadingInterceptor());
 		}
 
-		internal static bool AreSameTypes(Type left, Type right)
+		public static bool AreSameTypes(Type left, Type right)
 		{
 			if (left == right)
 				return true;
@@ -28,11 +28,9 @@ namespace Ormongo.Internal.Proxying
 			return false;
 		}
 
-		public static Type GetUnderlyingType(Type type)
+		public static Type GetUnderlyingType(object value)
 		{
-			if (type.GetInterfaces().Contains(typeof(IProxy)))
-				return type.BaseType;
-			return type;
+			return ProxyUtil.GetUnproxiedType(value);
 		}
 	}
 }

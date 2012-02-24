@@ -105,6 +105,21 @@ namespace Ormongo.Tests
 		}
 
 		[Test]
+		public void CanSaveAndLoadMetadata()
+		{
+			// Arrange.
+			Attachment file = Attachment.Create("Files/Koala.jpg", "image/jpg", new BsonDocument("Huggable", true));
+
+			// Act.
+			var retrievedFile = Attachment.FindOneByID(file.ID);
+
+			// Assert.
+			Assert.That(retrievedFile.Metadata, Is.Not.Null);
+			Assert.That(retrievedFile.Metadata.Contains("Huggable"), Is.True);
+			Assert.That(retrievedFile.Metadata["Huggable"].AsBoolean, Is.True);
+		}
+
+		[Test]
 		public void CanSaveAsset()
 		{
 			// Arrange.

@@ -110,6 +110,13 @@ namespace Ormongo
 			return item;
 		}
 
+		public static TDerived Create<TDerived>(TDerived item)
+			where TDerived : T
+		{
+			item.Save();
+			return item;
+		}
+
 		public static void Delete(ObjectId id)
 		{
 			GetCollection().Remove(GetIDQuery(id));
@@ -396,6 +403,11 @@ namespace Ormongo
 		public override int GetHashCode()
 		{
 			return ID.GetHashCode();
+		}
+
+		public Type GetUnderlyingType()
+		{
+			return ProxyManager.GetUnderlyingType(this);
 		}
 
 		#endregion
