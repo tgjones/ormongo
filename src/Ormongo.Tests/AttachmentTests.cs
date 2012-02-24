@@ -28,19 +28,19 @@ namespace Ormongo.Tests
 		{
 			// Arrange.
 			Attachment file = CreateAttachment();
-			Assert.That(Attachment.FindAll().Count(), Is.EqualTo(1));
+			Assert.That(Attachment.All().Count(), Is.EqualTo(1));
 
 			// Act.
 			Attachment.Delete(file.ID);
 
 			// Assert.
-			Assert.That(Attachment.FindAll().Count(), Is.EqualTo(0));
+			Assert.That(Attachment.All().Count(), Is.EqualTo(0));
 		}
 
 		[Test]
 		public void CanCreateAttachmentFromStream()
 		{
-			Assert.That(Attachment.FindAll().Count(), Is.EqualTo(0));
+			Assert.That(Attachment.All().Count(), Is.EqualTo(0));
 
 			// Act.
 			Attachment file;
@@ -49,19 +49,19 @@ namespace Ormongo.Tests
 
 			// Assert.
 			Assert.That(file.ID, Is.Not.EqualTo(ObjectId.Empty));
-			Assert.That(Attachment.FindAll().Count(), Is.EqualTo(1));
+			Assert.That(Attachment.All().Count(), Is.EqualTo(1));
 		}
 
 		[Test]
 		public void CanSaveAttachment()
 		{
 			// Act.
-			Assert.That(Attachment.FindAll().Count(), Is.EqualTo(0));
+			Assert.That(Attachment.All().Count(), Is.EqualTo(0));
 			Attachment file = CreateAttachment();
 
 			// Assert.
 			Assert.That(file.ID, Is.Not.EqualTo(ObjectId.Empty));
-			Assert.That(Attachment.FindAll().Count(), Is.EqualTo(1));
+			Assert.That(Attachment.All().Count(), Is.EqualTo(1));
 		}
 
 		[Test]
@@ -79,7 +79,7 @@ namespace Ormongo.Tests
 
 				// Assert.
 				Assert.That(file.ID, Is.EqualTo(id));
-				Assert.That(Attachment.FindAll().Count(), Is.EqualTo(1));
+				Assert.That(Attachment.All().Count(), Is.EqualTo(1));
 			}
 		}
 
@@ -87,21 +87,21 @@ namespace Ormongo.Tests
 		public void CanSaveAttachmentsWithDuplicateFileNames()
 		{
 			// Act.
-			Assert.That(Attachment.FindAll().Count(), Is.EqualTo(0));
+			Assert.That(Attachment.All().Count(), Is.EqualTo(0));
 			Attachment file1 = CreateAttachment();
 			Attachment file2 = CreateAttachment();
 
 			// Assert.
-			Assert.That(Attachment.FindAll().Count(), Is.EqualTo(2));
-			Assert.That(Attachment.FindOneByID(file1.ID), Is.Not.Null);
-			Assert.That(Attachment.FindOneByID(file2.ID), Is.Not.Null);
+			Assert.That(Attachment.All().Count(), Is.EqualTo(2));
+			Assert.That(Attachment.Find(file1.ID), Is.Not.Null);
+			Assert.That(Attachment.Find(file2.ID), Is.Not.Null);
 		}
 
 		[Test]
 		public void FindByIDReturnsNullForInvalidID()
 		{
 			// Assert.
-			Assert.That(Attachment.FindOneByID(ObjectId.GenerateNewId()), Is.Null);
+			Assert.That(Attachment.Find(ObjectId.GenerateNewId()), Is.Null);
 		}
 
 		[Test]
@@ -111,7 +111,7 @@ namespace Ormongo.Tests
 			Attachment file = Attachment.Create("Files/Koala.jpg", "image/jpg", new BsonDocument("Huggable", true));
 
 			// Act.
-			var retrievedFile = Attachment.FindOneByID(file.ID);
+			var retrievedFile = Attachment.Find(file.ID);
 
 			// Assert.
 			Assert.That(retrievedFile.Metadata, Is.Not.Null);
@@ -144,7 +144,7 @@ namespace Ormongo.Tests
 				long contentLength = stream.Length;
 
 				// Act.
-				Attachment myFile = Attachment.FindOneByID(file.ID);
+				Attachment myFile = Attachment.Find(file.ID);
 				long myContentLength = myFile.Content.Length;
 
 				// Assert.

@@ -135,12 +135,12 @@ namespace Ormongo
 			GetGridFS().Files.RemoveAll();
 		}
 
-		public static IEnumerable<Attachment> FindAll()
+		public static IEnumerable<Attachment> All()
 		{
 			return GetGridFS().Files.FindAll().Select(f => new Attachment(f["_id"].AsObjectId));
 		}
 
-		public static Attachment FindOneByID(ObjectId id)
+		public static Attachment Find(ObjectId id)
 		{
 			var file = GetGridFS().FindOneById(id);
 			return (file != null) ? new Attachment(id, file) : null;
