@@ -11,109 +11,134 @@ namespace Ormongo
 	{
 		public static EventHandler<AttachmentDeletingEventArgs> Deleting;
 
-		public ObjectId ID { get; set; }
+		private MongoGridFSFileInfo _fileInfo;
 
-		public bool IsLoaded { get; private set; }
+		public ObjectId ID { get; set; }
+		public bool IsPersisted { get; private set; }
+
+		internal bool IsLoaded { get; private set; }
+		internal bool IsContentLoaded {get; private set;}
 
 		private Stream _content;
+		private bool _contentChanged;
 		public Stream Content
 		{
 			get
 			{
-				if (!IsLoaded)
-					Load();
+				if (!IsContentLoaded)
+					LoadContent();
 				return _content;
 			}
-			set { _content = value; }
+			set
+			{
+				_content = value;
+				_contentChanged = true;
+				IsContentLoaded = true;
+			}
 		}
 
 		private string _fileName;
+		private bool _fileNameChanged;
 		public string FileName
 		{
 			get
 			{
 				if (!IsLoaded)
-					Load(); 
+					Load();
 				return _fileName;
 			}
-			set { _fileName = value; }
+			set
+			{
+				_fileName = value;
+				_fileNameChanged = true;
+			}
 		}
 
 		private string _contentType;
+		private bool _contentTypeChanged;
 		public string ContentType
 		{
 			get
 			{
 				if (!IsLoaded)
-					Load(); 
+					Load();
 				return _contentType;
 			}
-			set { _contentType = value; }
+			set
+			{
+				_contentType = value;
+				_contentTypeChanged = true;
+			}
 		}
 
 		private BsonDocument _metadata;
+		private bool _metadataChanged;
 		public BsonDocument Metadata
 		{
 			get
 			{
 				if (!IsLoaded)
 					Load();
+				if (_metadata == null)
+					Metadata = new BsonDocument();
 				return _metadata;
+			}
+			set
+			{
+				_metadata = value;
+				_metadataChanged = true;
 			}
 		}
 
-		private Attachment(Stream content, string fileName, string contentType, BsonDocument metadata)
+		public Attachment()
 		{
-			Content = content;
-			FileName = fileName;
-			ContentType = contentType;
-			_metadata = metadata;
-			IsLoaded = true;
+			
 		}
 
-		private Attachment(ObjectId id, MongoGridFSFileInfo fileInfo)
+		public Attachment(Stream content)
 		{
-			ID = id;
-			Load(fileInfo);
+			_content = content;
+			IsLoaded = true;
+			IsContentLoaded = true;
 		}
 
 		internal Attachment(ObjectId id)
 		{
 			ID = id;
-			IsLoaded = false;
+			IsPersisted = true;
 		}
 
-		public static Attachment Create(Stream content, string fileName, string contentType, BsonDocument metadata = null)
+		private Attachment(MongoGridFSFileInfo fileInfo)
 		{
-			var result = new Attachment(content, fileName, contentType, metadata);
-			result.Save();
-			return result;
+			_fileInfo = fileInfo;
+			ID = fileInfo.Id.AsObjectId;
+			IsPersisted = true;
 		}
 
-		public static Attachment Create(string fileName, string contentType, BsonDocument metadata = null)
+		public static Attachment Create(Attachment attachment)
 		{
-			var fileInfo = new FileInfo(fileName);
-			using (var stream = fileInfo.OpenRead())
-			{
-				var result = new Attachment(stream, fileInfo.Name, contentType, metadata);
-				result.Save();
-				return result;
-			}
+			attachment.Save();
+			return attachment;
+		}
+
+		private void LoadContent()
+		{
+			if (!IsLoaded)
+				Load();
+			_content = _fileInfo.OpenRead();
+			IsContentLoaded = true;
 		}
 
 		private void Load()
 		{
-			var file = GetGridFS().FindOneById(ID);
-			if (file != null)
-				Load(file);
-		}
+			if (_fileInfo == null) // True when Attachment is loaded from serialised Attachment property.
+				_fileInfo = GetGridFS().FindOneById(ID);
+			if (_fileInfo == null)
+				return;
 
-		private void Load(MongoGridFSFileInfo fileInfo)
-		{
-			Content = fileInfo.OpenRead();
-			ContentType = fileInfo.ContentType;
-			FileName = fileInfo.Name;
-			_metadata = fileInfo.Metadata;
+			_contentType = _fileInfo.ContentType;
+			_fileName = _fileInfo.Name;
+			_metadata = _fileInfo.Metadata;
 
 			IsLoaded = true;
 		}
@@ -137,32 +162,65 @@ namespace Ormongo
 
 		public static IEnumerable<Attachment> All()
 		{
-			return GetGridFS().Files.FindAll().Select(f => new Attachment(f["_id"].AsObjectId));
+			//return GetGridFS().Files.FindAll().Select(f => new Attachment(f["_id"].AsObjectId));
+			return GetGridFS().FindAll().Select(f => new Attachment(f));
 		}
 
 		public static Attachment Find(ObjectId id)
 		{
 			var file = GetGridFS().FindOneById(id);
-			return (file != null) ? new Attachment(id, file) : null;
+			return (file != null) ? new Attachment(file) : null;
 		}
 
 		public void Save()
 		{
 			var gridFS = GetGridFS();
 
-			if (ID == ObjectId.Empty)
-				ID = ObjectId.GenerateNewId();
-			else
-				gridFS.DeleteById(ID);
-
-			var options = new MongoGridFSCreateOptions
+			if (IsPersisted)
 			{
-				ContentType = ContentType,
-				Id = ID,
-				UploadDate = DateTime.UtcNow,
-				Metadata = _metadata
-			};
-			gridFS.Upload(Content, FileName, options);
+				if (!IsLoaded)
+					Load();
+
+				if (_contentChanged || _fileNameChanged)
+				{
+					gridFS.DeleteById(ID);
+					var options = new MongoGridFSCreateOptions
+					{
+						ContentType = ContentType,
+						Id = ID,
+						UploadDate = DateTime.UtcNow,
+						Metadata = _metadata
+					};
+					gridFS.Upload(Content, FileName, options);
+				}
+				else
+				{
+					if (_contentTypeChanged)
+						gridFS.SetContentType(_fileInfo, _contentType);
+					if (_metadataChanged)
+						gridFS.SetMetadata(_fileInfo, _metadata);
+				}
+			}
+			else
+			{
+				ID = ObjectId.GenerateNewId();
+
+				var options = new MongoGridFSCreateOptions
+				{
+					ContentType = _contentType,
+					Id = ID,
+					UploadDate = DateTime.UtcNow,
+					Metadata = _metadata
+				};
+				gridFS.Upload(_content, _fileName, options);
+
+				IsPersisted = true;
+			}
+
+			_contentChanged = false;
+			_fileNameChanged = false;
+			_contentTypeChanged = false;
+			_metadataChanged = false;
 		}
 
 		#region Events

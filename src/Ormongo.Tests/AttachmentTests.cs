@@ -20,7 +20,13 @@ namespace Ormongo.Tests
 
 		private static Attachment CreateAttachment()
 		{
-			return Attachment.Create("Files/Koala.jpg", "image/jpg");
+			using (var fs = File.OpenRead("Files/Koala.jpg"))
+				return Attachment.Create(new Attachment
+				{
+					Content = fs,
+					FileName = "Koala.jpg",
+					ContentType = "image/jpg"
+				});
 		}
 
 		[Test]
@@ -44,8 +50,12 @@ namespace Ormongo.Tests
 
 			// Act.
 			Attachment file;
-			using (FileStream stream = File.OpenRead("Files/Koala.jpg"))
-				file = Attachment.Create(stream, "Files/Koala.jpg", "image/jpg");
+			using (var fs = File.OpenRead("Files/Koala.jpg"))
+				file = Attachment.Create(new Attachment
+				{
+					Content = fs,
+					ContentType = "image/jpg"
+				});
 
 			// Assert.
 			Assert.That(file.ID, Is.Not.EqualTo(ObjectId.Empty));
@@ -70,7 +80,12 @@ namespace Ormongo.Tests
 			// Arrange.
 			using (FileStream stream = File.OpenRead("Files/Koala.jpg"))
 			{
-				Attachment file = Attachment.Create(stream, "Files/Koala.jpg", "image/jpg");
+				Attachment file = Attachment.Create(new Attachment
+				{
+					Content = stream,
+					FileName = "Files/Koala.jpg",
+					ContentType = "image/jpg"
+				});
 				ObjectId id = file.ID;
 
 				// Act.
@@ -108,7 +123,9 @@ namespace Ormongo.Tests
 		public void CanSaveAndLoadMetadata()
 		{
 			// Arrange.
-			Attachment file = Attachment.Create("Files/Koala.jpg", "image/jpg", new BsonDocument("Huggable", true));
+			Attachment file = CreateAttachment();
+			file.Metadata["Huggable"] = true;
+			file.Save();
 
 			// Act.
 			var retrievedFile = Attachment.Find(file.ID);
@@ -126,11 +143,11 @@ namespace Ormongo.Tests
 			Attachment file = CreateAttachment();
 
 			// Act.
-			Asset asset = new Asset { Title = "The Title", File = file };
+			var asset = new Asset { Title = "The Title", File = file };
 			asset.Save();
 
 			// Assert.
-			BsonDocument assetDoc = Asset.GetCollection().FindOneByIdAs<BsonDocument>(asset.ID);
+			var assetDoc = Asset.GetCollection().FindOneByIdAs<BsonDocument>(asset.ID);
 			Assert.That(assetDoc["File"].AsObjectId, Is.EqualTo(file.ID));
 		}
 
@@ -140,7 +157,12 @@ namespace Ormongo.Tests
 			using (FileStream stream = File.OpenRead("Files/Koala.jpg"))
 			{
 				// Arrange.
-				Attachment file = Attachment.Create(stream, "Files/Koala.jpg", "image/jpg");
+				Attachment file = Attachment.Create(new Attachment
+				{
+					Content = stream,
+					FileName = "Files/Koala.jpg",
+					ContentType = "image/jpg"
+				});
 				long contentLength = stream.Length;
 
 				// Act.
@@ -157,7 +179,7 @@ namespace Ormongo.Tests
 		{
 			// Arrange.
 			Attachment file = CreateAttachment();
-			Asset asset = new Asset { Title = "The Title", File = file };
+			var asset = new Asset { Title = "The Title", File = file };
 			asset.Save();
 
 			// Act.
@@ -172,7 +194,7 @@ namespace Ormongo.Tests
 		{
 			// Arrange.
 			Attachment file = CreateAttachment();
-			Asset asset = new Asset { Title = "The Title", File = file };
+			var asset = new Asset { Title = "The Title", File = file };
 			asset.Save();
 
 			// Act.
@@ -191,7 +213,7 @@ namespace Ormongo.Tests
 		{
 			// Arrange.
 			Attachment file = CreateAttachment();
-			Asset asset = new Asset { Title = "The Title", File = file };
+			var asset = new Asset { Title = "The Title", File = file };
 			asset.Save();
 
 			// Act.
@@ -206,11 +228,27 @@ namespace Ormongo.Tests
 		}
 
 		[Test]
+		public void AssetAttachmentContentIsNotLoadedIfContentTypeIsUsed()
+		{
+			// Arrange.
+			Attachment file = CreateAttachment();
+			var asset = new Asset { Title = "The Title", File = file };
+			asset.Save();
+
+			// Act.
+			Asset theAsset = Asset.Find(asset.ID);
+			string contentType = theAsset.File.ContentType;
+
+			// Assert.
+			Assert.That(theAsset.File.IsContentLoaded, Is.False);
+		}
+
+		[Test]
 		public void AssetAttachmentIsLoadedIfContentIsUsed()
 		{
 			// Arrange.
 			Attachment file = CreateAttachment();
-			Asset asset = new Asset { Title = "The Title", File = file };
+			var asset = new Asset { Title = "The Title", File = file };
 			asset.Save();
 
 			// Act.
@@ -222,6 +260,22 @@ namespace Ormongo.Tests
 			Assert.That(theAsset.File.IsLoaded, Is.True);
 			Assert.That(theAsset.File.FileName, Is.EqualTo("Koala.jpg"));
 			Assert.That(theAsset.File.ContentType, Is.EqualTo("image/jpg"));
+		}
+
+		[Test]
+		public void AssetAttachmentContentIsLoadedIfContentIsUsed()
+		{
+			// Arrange.
+			Attachment file = CreateAttachment();
+			var asset = new Asset { Title = "The Title", File = file };
+			asset.Save();
+
+			// Act.
+			Asset theAsset = Asset.Find(asset.ID);
+			Stream content = theAsset.File.Content;
+
+			// Assert.
+			Assert.That(theAsset.File.IsContentLoaded, Is.True);
 		}
 	}
 }
