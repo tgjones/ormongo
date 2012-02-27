@@ -72,7 +72,6 @@ namespace Ormongo
 		}
 
 		private BsonDocument _metadata;
-		private bool _metadataChanged;
 		public BsonDocument Metadata
 		{
 			get
@@ -83,11 +82,7 @@ namespace Ormongo
 					Metadata = new BsonDocument();
 				return _metadata;
 			}
-			set
-			{
-				_metadata = value;
-				_metadataChanged = true;
-			}
+			set { _metadata = value; }
 		}
 
 		public Attachment()
@@ -197,8 +192,8 @@ namespace Ormongo
 				{
 					if (_contentTypeChanged)
 						gridFS.SetContentType(_fileInfo, _contentType);
-					if (_metadataChanged)
-						gridFS.SetMetadata(_fileInfo, _metadata);
+					// Metadata is a BsonDocument - we can't detect if it's changed, so always save it.
+					gridFS.SetMetadata(_fileInfo, _metadata);
 				}
 			}
 			else
@@ -220,7 +215,6 @@ namespace Ormongo
 			_contentChanged = false;
 			_fileNameChanged = false;
 			_contentTypeChanged = false;
-			_metadataChanged = false;
 		}
 
 		#region Events
