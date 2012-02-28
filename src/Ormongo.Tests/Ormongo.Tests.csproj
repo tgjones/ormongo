@@ -65,6 +65,7 @@
   <ItemGroup>
     <Compile Include="EmbeddedDocumentTests.cs" />
     <Compile Include="AttachmentTests.cs" />
+    <Compile Include="IdentityMap\IdentityMapTests.cs" />
     <Compile Include="Internal\CollectionUtilityTests.cs" />
     <Compile Include="Internal\ReflectionUtilityTests.cs" />
     <Compile Include="OrmongoConfigurationTests.cs" />
@@ -77,6 +78,10 @@
     <Compile Include="TestsBase.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Ormongo.IdentityMap\Ormongo.IdentityMap.csproj">
+      <Project>{9D33AE8D-C726-448B-B990-878CED95D971}</Project>
+      <Name>Ormongo.IdentityMap</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Ormongo.TestHelper\Ormongo.TestHelper.csproj">
       <Project>{320F63C7-3326-411C-BA78-663FEFF645BA}</Project>
       <Name>Ormongo.TestHelper</Name>
@@ -96,6 +101,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

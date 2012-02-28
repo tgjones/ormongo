@@ -1,6 +1,6 @@
 namespace Ormongo
 {
-	public interface IObserver<T>
+	public interface IObserver<in T>
 		where T : Document<T>
 	{
 		void AfterInitialize(T document);

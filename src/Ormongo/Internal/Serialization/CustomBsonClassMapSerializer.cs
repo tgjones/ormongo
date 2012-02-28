@@ -69,7 +69,7 @@ namespace Ormongo.Internal.Serialization
 				if (bsonClassMap.IsAnonymous)
 					throw new InvalidOperationException("An anonymous class cannot be deserialized.");
 				// Added
-				object instance = ProxyManager.GetProxy(bsonClassMap.ClassType);
+				object instance = CreateInstance(bsonClassMap);
 				// Added
 				if (bsonReader.CurrentBsonType != BsonType.Document)
 					throw new FileFormatException(string.Format("Expected a nested document representing the serialized form of a {0} value, but found a value of type {1} instead.", (object)actualType.FullName, (object)bsonReader.CurrentBsonType));
@@ -116,6 +116,12 @@ namespace Ormongo.Internal.Serialization
 				}
 				return instance;
 			}
+		}
+
+		private object CreateInstance(BsonClassMap bsonClassMap)
+		{
+			// Lookup ID in identity map
+			return ProxyManager.GetProxy(bsonClassMap.ClassType);
 		}
 
 		public bool GetDocumentId(object document, out object id, out Type idNominalType, out IIdGenerator idGenerator)

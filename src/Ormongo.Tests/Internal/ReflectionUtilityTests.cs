@@ -19,5 +19,25 @@ namespace Ormongo.Tests.Internal
 			// Assert.
 			Assert.That(result, Is.True);
 		}
+
+		private class Book : Document<Book>
+		{
+			
+		}
+
+		private class Novel : Book
+		{
+
+		}
+
+		[Test]
+		public void CanGetTypeOfRawGeneric()
+		{
+			// Act.
+			var result = ReflectionUtility.GetTypeOfRawGeneric(typeof(Document<>), typeof(Novel));
+
+			// Assert.
+			Assert.That(result, Is.EqualTo(typeof(Book)));
+		}
 	}
 }

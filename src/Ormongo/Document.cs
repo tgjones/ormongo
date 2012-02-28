@@ -20,6 +20,7 @@ namespace Ormongo
 
 		public static Func<IQueryable<T>, IQueryable<T>> DefaultScope { get; set; }
 		public static List<IObserver<T>> Observers { get; private set; }
+		public static List<IPlugin<T>> Plugins { get; private set; }
 
 		static Document()
 		{
@@ -30,6 +31,7 @@ namespace Ormongo
 			DefaultScope = items => items;
 
 			Observers = new List<IObserver<T>>();
+			Plugins = new List<IPlugin<T>>();
 		}
 
 		#endregion
@@ -68,6 +70,13 @@ namespace Ormongo
 
 		#region Persistence
 
+		public static T Load(T newInstance)
+		{
+			foreach (var plugin in Plugins)
+				plugin.Load(ref newInstance);
+			return newInstance;
+		}
+
 		public static void Drop()
 		{
 			try
@@ -83,25 +92,31 @@ namespace Ormongo
 
 		public void Save()
 		{
-			if (!OnBeforeSave())
-				return;
-
-			if (IsNewRecord)
+			Action finalAction = () =>
 			{
-				if (!OnBeforeCreate())
+				if (!OnBeforeSave())
 					return;
-				GetCollection().Insert(this);
-				OnAfterCreate();
-			}
-			else
-			{
-				if (!OnBeforeUpdate())
-					return;
-				GetCollection().Save(this);
-				OnAfterUpdate();
-			}
 
-			OnAfterSave();
+				if (IsNewRecord)
+				{
+					if (!OnBeforeCreate())
+						return;
+					GetCollection().Insert(this);
+					OnAfterCreate();
+				}
+				else
+				{
+					if (!OnBeforeUpdate())
+						return;
+					GetCollection().Save(this);
+					OnAfterUpdate();
+				}
+
+				OnAfterSave();
+			};
+			foreach (var plugin in Plugins)
+				plugin.Save((T) this, ref finalAction);
+			finalAction();
 		}
 
 		public static T Create(T item)
@@ -119,7 +134,10 @@ namespace Ormongo
 
 		public static void Delete(ObjectId id)
 		{
-			GetCollection().Remove(GetIDQuery(id));
+			Action finalAction = () => GetCollection().Remove(GetIDQuery(id));
+			foreach (var plugin in Plugins)
+				plugin.Delete(id, ref finalAction);
+			finalAction();
 		}
 
 		public static void DeleteAll()
@@ -155,7 +173,15 @@ namespace Ormongo
 
 		public static T Find(ObjectId id)
 		{
-			return GetCollection().FindOneById(id);
+			Func<T> finalAction = () => GetCollection().FindOneById(id);
+			foreach (var plugin in Plugins)
+				plugin.Find(id, ref finalAction);
+			return finalAction();
+		}
+
+		public static IQueryable<T> Find(ObjectId[] ids)
+		{
+			return All().Where(d => ids.Contains(d.ID));
 		}
 
 		public static TDerived Find<TDerived>(ObjectId id)

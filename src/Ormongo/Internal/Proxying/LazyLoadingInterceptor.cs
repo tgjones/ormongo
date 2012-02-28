@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Castle.DynamicProxy;
 using MongoDB.Bson;
-using MongoDB.Driver.Builders;
 
 namespace Ormongo.Internal.Proxying
 {
@@ -27,9 +27,10 @@ namespace Ormongo.Internal.Proxying
 							var otherID = document.ReferencesOneIDs[propertyName];
 
 							var otherType = invocation.Method.ReturnType;
-							var other = OrmongoConfiguration.GetMongoDatabase()
-								.GetCollection(CollectionUtility.GetCollectionName(otherType))
-								.FindOneByIdAs(otherType, otherID);
+							var findMethod = typeof(Document<>).MakeGenericType(otherType)
+								.GetMethods(BindingFlags.Public | BindingFlags.Static)
+								.Single(m => m.Name == "Find" && !m.IsGenericMethod && m.GetParameters().Count() == 1 && m.GetParameters()[0].ParameterType == typeof(ObjectId));
+							var other = findMethod.Invoke(null, new object[] { otherID });
 
 							var propertySetter = document.GetType().GetProperty(propertyName);
 							propertySetter.SetValue(document, other, null);
@@ -47,14 +48,15 @@ namespace Ormongo.Internal.Proxying
 					{
 						if (document.ReferencesManyIDs.ContainsKey(propertyName))
 						{
-							var otherIDs = document.ReferencesManyIDs[propertyName];
-							var otherIDsBson = otherIDs.Select(id => BsonValue.Create(id));
+							var otherIDs = document.ReferencesManyIDs[propertyName].ToArray();
 
 							var otherType = ReflectionUtility.GetTypeOfGenericList(invocation.Method.ReturnType);
-							var other = OrmongoConfiguration.GetMongoDatabase()
-								.GetCollection(CollectionUtility.GetCollectionName(otherType))
-								.FindAs(otherType, Query.In("_id", otherIDsBson))
-								.Cast(otherType).ToList(otherType);
+							var findMethod = typeof(Document<>).MakeGenericType(otherType).GetMethod("Find", new[] { typeof(ObjectId[]) });
+							var other = findMethod.Invoke(null, new object[] { otherIDs});
+
+							other = typeof(Enumerable).GetMethod("ToList", BindingFlags.Public | BindingFlags.Static)
+								.MakeGenericMethod(otherType)
+								.Invoke(null, new[] { other });
 
 							var propertySetter = document.GetType().GetProperty(propertyName);
 							propertySetter.SetValue(document, other, null);

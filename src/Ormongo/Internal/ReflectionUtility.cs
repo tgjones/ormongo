@@ -17,6 +17,18 @@ namespace Ormongo.Internal
 			return false;
 		}
 
+		public static Type GetTypeOfRawGeneric(Type generic, Type toCheck)
+		{
+			while (toCheck != null && toCheck != typeof(object))
+			{
+				var cur = toCheck.IsGenericType ? toCheck.GetGenericTypeDefinition() : toCheck;
+				if (generic == cur)
+					return toCheck.GetGenericArguments()[0];
+				toCheck = toCheck.BaseType;
+			}
+			return null;
+		}
+
 		public static bool IsListOfRawGeneric(Type itemType, Type typeToCheck)
 		{
 			if (!IsSubclassOfRawGeneric(typeof(List<>), typeToCheck))

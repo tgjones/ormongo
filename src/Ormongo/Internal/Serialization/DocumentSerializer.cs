@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
@@ -19,7 +20,12 @@ namespace Ormongo.Internal.Serialization
 			{
 				result = CustomBsonClassMapSerializer.Instance.Deserialize(bsonReader, nominalType, options);
 				if (result != null)
+				{
+					result = typeof(Document<>).MakeGenericType(ReflectionUtility.GetTypeOfRawGeneric(typeof(Document<>), result.GetType()))
+						.GetMethod("Load", BindingFlags.Public | BindingFlags.Static)
+						.Invoke(null, new[] { result });
 					((IDocument) result).AfterFind();
+				}
 			}
 			return result;
 		}
@@ -58,7 +64,7 @@ namespace Ormongo.Internal.Serialization
 
 		private static bool IsRelationalAssociation(BsonReader bsonReader, Type nominalType)
 		{
-			if (bsonReader.CurrentBsonType != BsonType.ObjectId || bsonReader.State != BsonReaderState.Value)
+			if (bsonReader.State != BsonReaderState.Value || bsonReader.CurrentBsonType != BsonType.ObjectId)
 				return false;
 
 			return IsRelationalType(nominalType);
