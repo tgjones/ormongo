@@ -17,9 +17,10 @@ namespace Ormongo.Tests.IdentityMap
 		}
 
 		[TearDown]
-		public void TearDown()
+		public override void TearDown()
 		{
 			BlogPost.Plugins.Clear();
+			base.TearDown();
 		}
 
 		[Test]

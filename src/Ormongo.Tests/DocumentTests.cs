@@ -12,12 +12,6 @@ namespace Ormongo.Tests
 	[TestFixture]
 	public class DocumentTests : TestsBase
 	{
-		[TearDown]
-		public void TearDown()
-		{
-			BlogPost.Drop();
-		}
-
 		private static BlogPost CreateBlogPost()
 		{
 			return new BlogPost
@@ -590,6 +584,21 @@ namespace Ormongo.Tests
 		}
 
 		[Test]
+		public void CanGetUnderlyingTypeOfDocumentProxy()
+		{
+			// Arrange.
+			var book = Book.Create(new Book { Title = "The Quiet American" });
+
+			// Act.
+			var retrievedBook = Book.Find(book.ID);
+			var retrievedBookProxy = retrievedBook as IProxy;
+
+			// Assert.
+			Assert.That(retrievedBookProxy, Is.Not.Null);
+			Assert.That(retrievedBookProxy.GetUnderlyingType(), Is.EqualTo(typeof(Book)));
+		}
+
+		[Test]
 		public void ReferencesManyWitNullReferenceWorks()
 		{
 			// Arrange.
@@ -634,6 +643,76 @@ namespace Ormongo.Tests
 			Assert.That(retrievedAuthor2.Books, Is.Not.Null);
 			Assert.That(retrievedAuthor2.Books, Contains.Item(book1));
 			Assert.That(retrievedAuthor2.Books, Contains.Item(book2));
+		}
+
+		#endregion
+
+		#region Dirty tracking
+
+		[Test]
+		public void PropertiesAreNotFlaggedAsChangedInitially()
+		{
+			// Arrange.
+			var book = new Book();
+
+			// Act / Assert.
+			Assert.That(book.HasValueChanged(b => b.Title), Is.False);
+		}
+
+		[Test]
+		public void PropertiesAreFlaggedAsChanged()
+		{
+			// Arrange.
+			var book = new Book { Title = "The Loud American" };
+
+			// Act / Assert.
+			Assert.That(book.HasValueChanged(b => b.Title), Is.True);
+		}
+
+		[Test]
+		public void PropertiesAreNotFlaggedAsChangedAfterSave()
+		{
+			// Arrange.
+			var book = Book.Create(new Book { Title = "The Loud American" });
+
+			// Act / Assert.
+			Assert.That(book.HasValueChanged(b => b.Title), Is.False);
+		}
+
+		[Test]
+		public void ChangingValueAfterSavingFlagsPropertyAsChanged()
+		{
+			// Arrange.
+			var book = Book.Create(new Book { Title = "The Loud American" });
+			book.Title = "The Quiet American";
+
+			// Act / Assert.
+			Assert.That(book.HasValueChanged(b => b.Title), Is.True);
+		}
+
+		[Test]
+		public void DocumentLoadedFromDatabaseDoesNotFlagPropertiesAsChanged()
+		{
+			// Arrange.
+			var book = Book.Create(new Book { Title = "The Loud American" });
+			var retrievedBook = Book.Find(book.ID);
+
+			// Act / Assert.
+			Assert.That(retrievedBook.HasValueChanged(b => b.Title), Is.False);
+		}
+
+		[Test]
+		public void CanGetOriginalValueOfProperty()
+		{
+			// Arrange.
+			var book = Book.Create(new Book { Title = "The Loud American" });
+			book.Title = "The Quiet American";
+
+			// Act.
+			var result = book.GetOriginalValue(b => b.Title);
+
+			// Act.
+			Assert.That(result, Is.EqualTo("The Loud American"));
 		}
 
 		#endregion

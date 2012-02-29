@@ -13,7 +13,7 @@ using Ormongo.Internal.Proxying;
 
 namespace Ormongo
 {
-	public class Document<T> : IDocument
+	public class Document<T> : ChangeTrackingObject<T>, IDocument
 		where T : Document<T>
 	{
 		#region Static
@@ -66,6 +66,7 @@ namespace Ormongo
 		public Document()
 		{
 			OnAfterInitialize();
+			ResetChanges();
 		}
 
 		#region Persistence
@@ -179,15 +180,21 @@ namespace Ormongo
 			return finalAction();
 		}
 
+		public static TDerived Find<TDerived>(ObjectId id)
+			where TDerived : T
+		{
+			return (TDerived)Find(id);
+		}
+
 		public static IQueryable<T> Find(ObjectId[] ids)
 		{
 			return All().Where(d => ids.Contains(d.ID));
 		}
 
-		public static TDerived Find<TDerived>(ObjectId id)
+		public static IQueryable<TDerived> Find<TDerived>(ObjectId[] ids)
 			where TDerived : T
 		{
-			return (TDerived) Find(id);
+			return All().Where(d => ids.Contains(d.ID)).Cast<TDerived>();
 		}
 
 		public static T Find(Expression<Func<T, bool>> predicate)
@@ -327,6 +334,7 @@ namespace Ormongo
 
 		protected virtual void OnAfterSave()
 		{
+			ResetChanges();
 			ExecuteObservers(o => o.AfterSave((T)this));
 		}
 
@@ -363,6 +371,7 @@ namespace Ormongo
 		protected virtual void OnAfterFind()
 		{
 			EmbeddedDocumentUtility.UpdateParentReferences(this);
+			ResetChanges();
 			ExecuteObservers(o => o.AfterFind((T)this));
 		}
 
@@ -429,11 +438,6 @@ namespace Ormongo
 		public override int GetHashCode()
 		{
 			return ID.GetHashCode();
-		}
-
-		public Type GetUnderlyingType()
-		{
-			return ProxyManager.GetUnderlyingType(this);
 		}
 
 		#endregion

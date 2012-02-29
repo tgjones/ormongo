@@ -12,30 +12,50 @@ namespace Ormongo.Internal.Proxying
 
 		public void Intercept(IInvocation invocation)
 		{
+			var proxy = invocation.Proxy as IProxy;
+			if (proxy != null)
+			{
+				// Intercept calls on GetUnderlyingType().
+				if (invocation.Method.Name == "GetUnderlyingType")
+				{
+					invocation.ReturnValue = ProxyManager.GetUnderlyingType(proxy);
+					return;
+				}
+			}
+
 			var document = invocation.InvocationTarget as IDocument;
 			if (document != null)
 			{
+				if (invocation.Method.Name == "OnAfterFind")
+				{
+					// Reset loaded properties.
+					_loadedProperties.Clear();
+				}
+
 				// Intercept calls to ReferencesOn relations.
-				if (invocation.Method.Name.StartsWith("get_") &&
-					ReflectionUtility.IsSubclassOfRawGeneric(typeof(Document<>), invocation.Method.ReturnType))
+				else if (ReflectionUtility.IsSubclassOfRawGeneric(typeof(Document<>), invocation.Method.ReturnType))
 				{
 					var propertyName = invocation.Method.Name.Substring(4);
-					if (!_loadedProperties.Contains(propertyName))
+					if (invocation.Method.Name.StartsWith("get_"))
 					{
-						if (document.ReferencesOneIDs.ContainsKey(propertyName))
+						if (!_loadedProperties.Contains(propertyName))
 						{
-							var otherID = document.ReferencesOneIDs[propertyName];
+							if (document.ReferencesOneIDs.ContainsKey(propertyName))
+							{
+								var otherID = document.ReferencesOneIDs[propertyName];
 
-							var otherType = invocation.Method.ReturnType;
-							var findMethod = typeof(Document<>).MakeGenericType(otherType)
-								.GetMethods(BindingFlags.Public | BindingFlags.Static)
-								.Single(m => m.Name == "Find" && !m.IsGenericMethod && m.GetParameters().Count() == 1 && m.GetParameters()[0].ParameterType == typeof(ObjectId));
-							var other = findMethod.Invoke(null, new object[] { otherID });
+								var otherType = invocation.Method.ReturnType;
+								var findMethod = typeof(Document<>)
+									.MakeGenericType(ReflectionUtility.GetTypeOfRawGeneric(typeof(Document<>), otherType))
+									.GetMethods(BindingFlags.Public | BindingFlags.Static)
+									.Single(m => m.Name == "Find" && !m.IsGenericMethod && m.GetParameters().Count() == 1 && m.GetParameters()[0].ParameterType == typeof(ObjectId));
+								var other = findMethod.Invoke(null, new object[] { otherID });
 
-							var propertySetter = document.GetType().GetProperty(propertyName);
-							propertySetter.SetValue(document, other, null);
+								var propertySetter = document.GetType().GetProperty(propertyName);
+								propertySetter.SetValue(document, other, null);
+							}
+							_loadedProperties.Add(propertyName);
 						}
-						_loadedProperties.Add(propertyName);
 					}
 				}
 
@@ -51,8 +71,12 @@ namespace Ormongo.Internal.Proxying
 							var otherIDs = document.ReferencesManyIDs[propertyName].ToArray();
 
 							var otherType = ReflectionUtility.GetTypeOfGenericList(invocation.Method.ReturnType);
-							var findMethod = typeof(Document<>).MakeGenericType(otherType).GetMethod("Find", new[] { typeof(ObjectId[]) });
-							var other = findMethod.Invoke(null, new object[] { otherIDs});
+							var findMethod = typeof(Document<>)
+								.MakeGenericType(ReflectionUtility.GetTypeOfRawGeneric(typeof(Document<>), otherType))
+								.GetMethods(BindingFlags.Public | BindingFlags.Static)
+								.Single(m => m.Name == "Find" && m.IsGenericMethod && m.GetParameters().Count() == 1 && m.GetParameters()[0].ParameterType == typeof(ObjectId[]))
+								.MakeGenericMethod(otherType);
+							var other = findMethod.Invoke(null, new object[] { otherIDs });
 
 							other = typeof(Enumerable).GetMethod("ToList", BindingFlags.Public | BindingFlags.Static)
 								.MakeGenericMethod(otherType)
