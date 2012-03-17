@@ -1,0 +1,13 @@
+﻿<?xml version="1.0"?>
+<package>
+	<metadata>
+		<id>$id$</id>
+		<version>$version$</version>
+		<title>$id$</title>
+		<authors>$author$</authors>
+		<owners>$author$</owners>
+		<description>$description$</description>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<tags>.net40 Mongo ORM ActiveRecord</tags>
+	</metadata>
+</package>

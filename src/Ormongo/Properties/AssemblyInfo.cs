@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Ormongo")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Lightweight implementation of the ActiveRecord pattern, built on top of the 10gen Mongo C# driver.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
+[assembly: AssemblyCompany("Tim Jones")]
 [assembly: AssemblyProduct("Ormongo")]
-[assembly: AssemblyCopyright("Copyright © Microsoft 2011")]
+[assembly: AssemblyCopyright("Copyright © Tim Jones 2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
