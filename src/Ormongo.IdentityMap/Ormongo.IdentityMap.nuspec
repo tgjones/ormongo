@@ -9,5 +9,8 @@
 		<description>$description$</description>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<tags>.net40 Mongo ORM ActiveRecord IdentityMap</tags>
+		<dependencies>
+			<dependency id="Ormongo" version="$version$" />
+		</dependencies>
 	</metadata>
 </package>
