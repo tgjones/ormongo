@@ -8,9 +8,9 @@
 		<owners>$author$</owners>
 		<description>$description$</description>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
-		<tags>.net40 Mongo ORM ActiveRecord</tags>
+		<tags>.net40 Mongo ORM ActiveRecord Tests</tags>
+		<dependencies>
+			<dependency id="Ormongo" version="$version$" />
+		</dependencies>
 	</metadata>
-	<files>
-		<file src="bin\Release\FluentMongo.dll" target="lib\net40-Client" />
-	</files>
 </package>
