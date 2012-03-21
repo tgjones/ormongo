@@ -17,6 +17,11 @@ namespace Ormongo
 
 		public static bool AutoCreateIndexes { get; set; }
 
+		static OrmongoConfiguration()
+		{
+			SafeMode = true;
+		}
+
 		internal static void Initialize()
 		{
 			if (_initialized)
