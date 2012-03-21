@@ -1,0 +1,1 @@
+- OrmongoConfiguration.SafeMode now defaults to true
