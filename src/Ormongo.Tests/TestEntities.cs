@@ -20,7 +20,7 @@ namespace Ormongo.Tests
 		}
 	}
 
-	public class Comment : EmbeddedDocument<BlogPost>
+	public class Comment : EmbeddedDocument<Comment, BlogPost>
 	{
 		public DateTime Date { get; set; }
 		public string Name { get; set; }
@@ -40,7 +40,7 @@ namespace Ormongo.Tests
 		public virtual Address Address { get; set; }
 	}
 
-	public class Address : EmbeddedDocumentWithID<Person>
+	public class Address : EmbeddedDocumentWithID<Address, Person>
 	{
 		public string Street { get; set; }
 		public string City { get; set; }

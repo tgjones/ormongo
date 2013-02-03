@@ -10,10 +10,11 @@ using MongoDB.Driver;
 using MongoDB.Driver.Builders;
 using Ormongo.Internal;
 using Ormongo.Internal.Proxying;
+using Ormongo.Validation;
 
 namespace Ormongo
 {
-	public class Document<T> : ChangeTrackingObject<T>, IDocument
+	public class Document<T> : ChangeTrackingObject<T>, IDocument, IValidatableObject
 		where T : Document<T>
 	{
 		#region Static
@@ -32,6 +33,8 @@ namespace Ormongo
 
 			Observers = new List<IObserver<T>>();
 			Plugins = new List<IPlugin<T>>();
+
+			Validators = new Dictionary<Func<T, object>, ValueValidatorBase<T>[]>();
 		}
 
 		#endregion
@@ -454,6 +457,33 @@ namespace Ormongo
 		Dictionary<string, List<ObjectId>> IDocument.ReferencesManyIDs
 		{
 			get { return _referencesManyIDs; }
+		}
+
+		#endregion
+
+		#region Validation
+
+		private static readonly Dictionary<Func<T, object>, ValueValidatorBase<T>[]> Validators;
+
+		public bool IsValid
+		{
+			get { return ValidationUtility.GetIsValid(this); }
+		}
+
+		protected static void Validates<TProperty>(Expression<Func<T, TProperty>> propertyExpression, params ValueValidatorBase<T>[] validators)
+		{
+			foreach (var validator in validators)
+				validator.Initialize(propertyExpression);
+			Validators.Add(x => propertyExpression.Compile()(x), validators);
+		}
+
+		public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+		{
+			var results = new List<ValidationResult>();
+			results.AddRange(ValidationUtility.Validate(this, Validators, validationContext));
+			foreach (IValidatableObject embeddedDocument in EmbeddedDocumentUtility.GetEmbeddedDocuments(this))
+				results.AddRange(embeddedDocument.Validate(validationContext));
+			return results;
 		}
 
 		#endregion

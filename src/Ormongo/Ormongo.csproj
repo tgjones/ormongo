@@ -81,6 +81,7 @@
     <Compile Include="Internal\Serialization\RelationCollectionSerializer.cs" />
     <Compile Include="Internal\Serialization\RelationSerializer.cs" />
     <Compile Include="Internal\Serialization\SerializationProvider.cs" />
+    <Compile Include="Validation\ValidationUtility.cs" />
     <Compile Include="IObserver.cs" />
     <Compile Include="IPlugin.cs" />
     <Compile Include="IProxy.cs" />
@@ -89,6 +90,12 @@
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Relation.cs" />
+    <Compile Include="Validation\AggregateValidator.cs" />
+    <Compile Include="Validation\DocumentValidationContext.cs" />
+    <Compile Include="Validation\ValueValidatorBase.cs" />
+    <Compile Include="Validation\PresenceValidator.cs" />
+    <Compile Include="Validation\StringLengthValidator.cs" />
+    <Compile Include="Validation\UniquenessValidator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
