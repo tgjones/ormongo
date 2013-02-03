@@ -484,16 +484,19 @@ namespace Ormongo
 			get
 			{
 				Errors.Clear();
-				RunCallbacks(OnBeforeValidation, () => ((IValidatableDocument) this).Validate(), OnAfterValidation);
+				var saveType = (IsNewRecord) ? SaveType.Create : SaveType.Update;
+				RunCallbacks(OnBeforeValidation, 
+					() => ((IValidatableDocument) this).Validate(saveType), 
+					OnAfterValidation);
 				return !Errors.Any();
 			}
 		}
 
-		IEnumerable<ValidationResult> IValidatableDocument.Validate()
+		IEnumerable<ValidationResult> IValidatableDocument.Validate(SaveType saveType)
 		{
-			Errors.AddRange(ValidationUtility.Validate(this, Validators));
+			Errors.AddRange(ValidationUtility.Validate(this, saveType, Validators));
 			foreach (IValidatableDocument embeddedDocument in EmbeddedDocumentUtility.GetEmbeddedDocuments(this))
-				Errors.AddRange(embeddedDocument.Validate());
+				Errors.AddRange(embeddedDocument.Validate(saveType));
 			return Errors;
 		}
 

@@ -9,15 +9,19 @@ namespace Ormongo.Validation
 	{
 		public bool AllowNull { get; set; }
 		public Func<T, bool> Unless { get; set; }
+		public SaveType On { get; set; }
 
 		internal virtual void Initialize<TProperty>(Expression<Func<T, TProperty>> propertyExpression)
 		{
-			
+
 		}
 
 		public IEnumerable<ValidationResult> Validate(object value, DocumentValidationContext<T> validationContext)
 		{
 			if (Unless != null && Unless(validationContext.Document))
+				yield break;
+
+			if (On != SaveType.Any && On != validationContext.SaveType)
 				yield break;
 
 			if (value == null && !AllowNull)

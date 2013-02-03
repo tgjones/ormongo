@@ -15,7 +15,7 @@ namespace Ormongo.Tests.Validation
 			// Arrange.
 			var validator = new PresenceValidator<TestEntity>();
 			var instance = new TestEntity();
-			var context = DocumentValidationContext<TestEntity>.Create(instance); 
+			var context = DocumentValidationContext<TestEntity>.Create(instance, SaveType.Any); 
 
 			// Act.
 			return validator.Validate(value, context).Count();

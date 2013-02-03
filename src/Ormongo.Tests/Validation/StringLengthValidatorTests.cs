@@ -18,7 +18,7 @@ namespace Ormongo.Tests.Validation
 				AllowNull = true
 			};
 			var instance = new TestEntity();
-			var context = DocumentValidationContext<TestEntity>.Create(instance); 
+			var context = DocumentValidationContext<TestEntity>.Create(instance, SaveType.Any); 
 
 			// Act.
 			return validator.Validate(value, context).Count();

@@ -82,6 +82,7 @@
     <Compile Include="Internal\Serialization\RelationCollectionSerializer.cs" />
     <Compile Include="Internal\Serialization\RelationSerializer.cs" />
     <Compile Include="Internal\Serialization\SerializationProvider.cs" />
+    <Compile Include="Validation\SaveType.cs" />
     <Compile Include="Validation\ValidationUtility.cs" />
     <Compile Include="IObserver.cs" />
     <Compile Include="IPlugin.cs" />

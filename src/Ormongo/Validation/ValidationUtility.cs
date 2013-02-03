@@ -6,10 +6,10 @@ namespace Ormongo.Validation
 {
 	internal static class ValidationUtility
 	{
-		public static IEnumerable<ValidationResult> Validate<T>(object instance, 
+		public static IEnumerable<ValidationResult> Validate<T>(object instance, SaveType saveType,
 			Dictionary<Func<T, object>, ValueValidatorBase<T>[]> validators)
 		{
-			var documentValidationContext = DocumentValidationContext<T>.Create((T) instance);
+			var documentValidationContext = DocumentValidationContext<T>.Create((T) instance, saveType);
 			var results = new List<ValidationResult>();
 			foreach (var kvp in validators)
 			{

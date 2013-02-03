@@ -36,9 +36,9 @@ namespace Ormongo
 			Validators.Add(x => propertyExpression.Compile()(x), validators);
 		}
 
-		IEnumerable<ValidationResult> IValidatableDocument.Validate()
+		IEnumerable<ValidationResult> IValidatableDocument.Validate(SaveType saveType)
 		{
-			return ValidationUtility.Validate(this, Validators);
+			return ValidationUtility.Validate(this, saveType, Validators);
 		}
 
 		#endregion
