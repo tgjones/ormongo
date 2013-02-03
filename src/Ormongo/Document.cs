@@ -34,7 +34,7 @@ namespace Ormongo
 			Observers = new List<IObserver<T>>();
 			Plugins = new List<IPlugin<T>>();
 
-			Validators = new Dictionary<Func<T, object>, ValueValidatorBase<T>[]>();
+			Validators = new Dictionary<Func<T, object>, IValidationBuilder<T>>();
 		}
 
 		#endregion
@@ -467,13 +467,13 @@ namespace Ormongo
 
 		#region Validation
 
-		private static readonly Dictionary<Func<T, object>, ValueValidatorBase<T>[]> Validators;
+		private static readonly Dictionary<Func<T, object>, IValidationBuilder<T>> Validators;
 
-		protected static void Validates<TProperty>(Expression<Func<T, TProperty>> propertyExpression, params ValueValidatorBase<T>[] validators)
+		protected static ValidationBuilder<T, TProperty> Validates<TProperty>(Expression<Func<T, TProperty>> propertyExpression)
 		{
-			foreach (var validator in validators)
-				validator.Initialize(propertyExpression);
-			Validators.Add(x => propertyExpression.Compile()(x), validators);
+			var validationBuilder = new DocumentValidationBuilder<T, TProperty>(propertyExpression);
+			Validators.Add(x => propertyExpression.Compile()(x), validationBuilder);
+			return validationBuilder;
 		}
 
 		[BsonIgnore]

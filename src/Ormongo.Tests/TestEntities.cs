@@ -37,7 +37,7 @@ namespace Ormongo.Tests
 	{
 		static Person()
 		{
-			Validates(x => x.FirstName, new PresenceValidator<Person>());
+			Validates(x => x.FirstName).Presence();
 		}
 
 		public string FirstName { get; set; }
@@ -50,7 +50,7 @@ namespace Ormongo.Tests
 	{
 		static Address()
 		{
-			Validates(x => x.City, new PresenceValidator<Address>());
+			Validates(x => x.City).Presence();
 		}
 
 		public string Street { get; set; }

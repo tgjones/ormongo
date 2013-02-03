@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq.Expressions;
-
 namespace Ormongo.Validation
 {
 	public abstract class ValueValidatorBase<T> 
@@ -10,11 +8,6 @@ namespace Ormongo.Validation
 		public bool AllowNull { get; set; }
 		public Func<T, bool> Unless { get; set; }
 		public SaveType On { get; set; }
-
-		internal virtual void Initialize<TProperty>(Expression<Func<T, TProperty>> propertyExpression)
-		{
-
-		}
 
 		public IEnumerable<ValidationResult> Validate(object value, DocumentValidationContext<T> validationContext)
 		{
