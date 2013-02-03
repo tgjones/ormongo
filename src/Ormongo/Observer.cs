@@ -52,5 +52,15 @@
 		{
 			
 		}
+
+		public virtual bool BeforeValidation(T document)
+		{
+			return true;
+		}
+
+		public virtual void AfterValidation(T document)
+		{
+
+		}
 	}
 }

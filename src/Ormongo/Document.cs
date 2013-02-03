@@ -14,7 +14,7 @@ using Ormongo.Validation;
 
 namespace Ormongo
 {
-	public class Document<T> : ChangeTrackingObject<T>, IDocument, IValidatableObject
+	public class Document<T> : ChangeTrackingObject<T>, IDocument, IValidatableDocument
 		where T : Document<T>
 	{
 		#region Static
@@ -68,6 +68,7 @@ namespace Ormongo
 
 		public Document()
 		{
+			Errors = new List<ValidationResult>();
 			OnAfterInitialize();
 			ResetChanges();
 		}
@@ -98,28 +99,21 @@ namespace Ormongo
 		{
 			Action finalAction = () =>
 			{
-				if (!OnBeforeSave())
+				if (!IsValid)
 					return;
 
-				if (IsNewRecord)
+				RunCallbacks(OnBeforeSave, () =>
 				{
-					if (!OnBeforeCreate())
-						return;
-					GetCollection().Insert(this);
-					OnAfterCreate();
-				}
-				else
-				{
-					if (!OnBeforeUpdate())
-						return;
-					GetCollection().Save(this);
-					OnAfterUpdate();
-				}
-
-				OnAfterSave();
+					if (IsNewRecord)
+						RunCallbacks(OnBeforeCreate, () => GetCollection().Insert(this), OnAfterCreate);
+					else
+						RunCallbacks(OnBeforeUpdate, () => GetCollection().Save(this), OnAfterUpdate);
+				}, OnAfterSave);
 			};
+
 			foreach (var plugin in Plugins)
 				plugin.Save((T) this, ref finalAction);
+
 			finalAction();
 		}
 
@@ -371,6 +365,16 @@ namespace Ormongo
 			ExecuteObservers(o => o.AfterDestroy((T)this));
 		}
 
+		protected virtual bool OnBeforeValidation()
+		{
+			return ExecuteCancellableObservers(o => o.BeforeValidation((T) this));
+		}
+
+		protected virtual void OnAfterValidation()
+		{
+			ExecuteObservers(o => o.AfterValidation((T) this));
+		}
+
 		protected virtual void OnAfterFind()
 		{
 			EmbeddedDocumentUtility.UpdateParentReferences(this);
@@ -465,11 +469,6 @@ namespace Ormongo
 
 		private static readonly Dictionary<Func<T, object>, ValueValidatorBase<T>[]> Validators;
 
-		public bool IsValid
-		{
-			get { return ValidationUtility.GetIsValid(this); }
-		}
-
 		protected static void Validates<TProperty>(Expression<Func<T, TProperty>> propertyExpression, params ValueValidatorBase<T>[] validators)
 		{
 			foreach (var validator in validators)
@@ -477,13 +476,42 @@ namespace Ormongo
 			Validators.Add(x => propertyExpression.Compile()(x), validators);
 		}
 
-		public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+		[BsonIgnore]
+		public List<ValidationResult> Errors { get; private set; }
+
+		public bool IsValid
 		{
-			var results = new List<ValidationResult>();
-			results.AddRange(ValidationUtility.Validate(this, Validators, validationContext));
-			foreach (IValidatableObject embeddedDocument in EmbeddedDocumentUtility.GetEmbeddedDocuments(this))
-				results.AddRange(embeddedDocument.Validate(validationContext));
-			return results;
+			get
+			{
+				Errors.Clear();
+				RunCallbacks(OnBeforeValidation, () => ((IValidatableDocument) this).Validate(), OnAfterValidation);
+				return !Errors.Any();
+			}
+		}
+
+		IEnumerable<ValidationResult> IValidatableDocument.Validate()
+		{
+			Errors.AddRange(ValidationUtility.Validate(this, Validators));
+			foreach (IValidatableDocument embeddedDocument in EmbeddedDocumentUtility.GetEmbeddedDocuments(this))
+				Errors.AddRange(embeddedDocument.Validate());
+			return Errors;
+		}
+
+		#endregion
+
+		#region Helpers
+
+		private bool RunCallbacks(Func<bool> before, Action action, Action after)
+		{
+			bool beforeResult;
+			if (!(beforeResult = before()))
+				return beforeResult;
+
+			action();
+
+			after();
+
+			return true;
 		}
 
 		#endregion

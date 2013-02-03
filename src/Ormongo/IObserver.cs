@@ -17,5 +17,8 @@ namespace Ormongo
 
 		bool BeforeDestroy(T document);
 		void AfterDestroy(T document);
+
+		bool BeforeValidation(T document);
+		void AfterValidation(T document);
 	}
 }

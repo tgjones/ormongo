@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using FluentMongo.Linq;
 using MongoDB.Bson;
 using MongoDB.Driver.Builders;
