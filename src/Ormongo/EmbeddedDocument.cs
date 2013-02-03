@@ -7,7 +7,7 @@ using Ormongo.Validation;
 
 namespace Ormongo
 {
-	public abstract class EmbeddedDocument<T, TEmbeddedIn>
+	public abstract class EmbeddedDocument<T, TEmbeddedIn> : IValidatableObject
 		where T : EmbeddedDocument<T, TEmbeddedIn>
 		where TEmbeddedIn : Document<TEmbeddedIn>
 	{

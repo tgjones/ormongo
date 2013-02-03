@@ -716,5 +716,46 @@ namespace Ormongo.Tests
 		}
 
 		#endregion
+
+		#region Validation
+
+		[Test]
+		public void IsValidReturnsTrueForValidDocument()
+		{
+			// Arrange.
+			var person = new Person { FirstName = "Tim" };
+
+			// Act / Assert.
+			Assert.That(person.IsValid, Is.True);
+		}
+
+		[Test]
+		public void IsValidReturnsFalseForInvalidDocument()
+		{
+			// Arrange.
+			var person = new Person { FirstName = null };
+
+			// Act / Assert.
+			Assert.That(person.IsValid, Is.False);
+		}
+
+		[Test]
+		public void ValidationIncludesEmbeddedDocumentValidators()
+		{
+			// Arrange.
+			var person = new Person
+			{
+				FirstName = "Tim",
+				Address = new Address
+				{
+					City = null
+				}
+			};
+
+			// Act / Assert.
+			Assert.That(person.IsValid, Is.False);
+		}
+
+		#endregion
 	}
 }

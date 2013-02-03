@@ -4,6 +4,12 @@ namespace Ormongo.Validation
 {
 	public class DocumentValidationContext<TDocument>
 	{
+		public static DocumentValidationContext<TDocument> Create(TDocument instance)
+		{
+			return new DocumentValidationContext<TDocument>(instance,
+				new ValidationContext(instance, null, null));
+		}
+
 		private readonly ValidationContext _validationContext;
 
 		public TDocument Document { get; private set; }

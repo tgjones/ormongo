@@ -16,7 +16,7 @@ namespace Ormongo.Validation
 			Dictionary<Func<T, object>, ValueValidatorBase<T>[]> validators, 
 			ValidationContext validationContext)
 		{
-			var documentValidationContext = new DocumentValidationContext<T>((T) instance, validationContext);
+			var documentValidationContext = DocumentValidationContext<T>.Create((T) instance);
 			var results = new List<ValidationResult>();
 			foreach (var kvp in validators)
 			{

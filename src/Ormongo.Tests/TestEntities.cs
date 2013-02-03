@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using MongoDB.Bson;
+using Ormongo.Validation;
 
 namespace Ormongo.Tests
 {
@@ -34,6 +35,11 @@ namespace Ormongo.Tests
 
 	public class Person : Document<Person>
 	{
+		static Person()
+		{
+			Validates(x => x.FirstName, new PresenceValidator<Person>());
+		}
+
 		public string FirstName { get; set; }
 		public string LastName { get; set; }
 
@@ -42,6 +48,11 @@ namespace Ormongo.Tests
 
 	public class Address : EmbeddedDocumentWithID<Address, Person>
 	{
+		static Address()
+		{
+			Validates(x => x.City, new PresenceValidator<Address>());
+		}
+
 		public string Street { get; set; }
 		public string City { get; set; }
 		public string State { get; set; }

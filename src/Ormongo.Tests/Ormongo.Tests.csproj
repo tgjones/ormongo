@@ -78,6 +78,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DocumentTests.cs" />
     <Compile Include="TestsBase.cs" />
+    <Compile Include="Validation\StringLengthValidatorTests.cs" />
+    <Compile Include="Validation\PresenceValidatorTests.cs" />
+    <Compile Include="Validation\ValidatorTestsBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Ormongo.IdentityMap\Ormongo.IdentityMap.csproj">
