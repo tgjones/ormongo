@@ -15,9 +15,21 @@ namespace Ormongo.Internal
 		{
 			var member = expression.Body as MemberExpression;
 			if (member == null)
-				throw new ArgumentException(string.Format(
-					"Expression '{0}' refers to a method, not a property.",
-					expression));
+			{
+				var unary = expression.Body as UnaryExpression;
+				if (unary != null && unary.NodeType == ExpressionType.Convert)
+				{
+					member = unary.Operand as MemberExpression;
+					if (member == null)
+						throw new ArgumentException(string.Format(
+							"Expression '{0}' is not a property expression.",
+							expression));
+				}
+				else
+					throw new ArgumentException(string.Format(
+						"Expression '{0}' refers to a method, not a property.",
+						expression));
+			}
 
 			var propertyInfo = member.Member as PropertyInfo;
 			if (propertyInfo == null)

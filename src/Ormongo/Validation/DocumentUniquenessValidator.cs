@@ -32,7 +32,8 @@ namespace Ormongo.Validation
 			if (string.IsNullOrEmpty(typedValue))
 				yield break;
 
-			typedValue = typedValue.ToLower();
+			if (!CaseSensitive)
+				typedValue = typedValue.ToLower();
 
 			var andClauses = new List<IMongoQuery>();
 			andClauses.Add(Query.NE("_id", validationContext.Document.ID));
@@ -40,6 +41,17 @@ namespace Ormongo.Validation
 			andClauses.Add(CaseSensitive
 				? Query.EQ(_propertyName, BsonValue.Create(typedValue))
 				: Query.Matches(_propertyName, new BsonRegularExpression("^" + Regex.Escape(typedValue) + "$", "i")));
+
+			if (Scope != null && Scope.Length > 0)
+				foreach (var scopeProperty in Scope)
+				{
+					string scopePropertyName = ExpressionUtility.GetPropertyName(scopeProperty);
+					object scopePropertyValue = scopeProperty.Compile()(validationContext.Document);
+					if (scopePropertyValue != null &&
+					    ReflectionUtility.IsSubclassOfRawGeneric(typeof(Document<>), scopePropertyValue.GetType()))
+						scopePropertyValue = DocumentUtility.GetDocumentID(scopePropertyValue);
+					andClauses.Add(Query.EQ(scopePropertyName, BsonValue.Create(scopePropertyValue)));
+				}
 
 			var query = Query.And(andClauses.ToArray());
 			var results = Document<TDocument>.GetCollection().Find(query);

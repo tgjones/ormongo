@@ -66,6 +66,7 @@
     <Compile Include="Document.cs" />
     <Compile Include="EmbeddedDocumentWithID.cs" />
     <Compile Include="Internal\CollectionUtility.cs" />
+    <Compile Include="Internal\DocumentUtility.cs" />
     <Compile Include="Internal\EmbeddedDocumentUtility.cs" />
     <Compile Include="Internal\ExtensionMethods.cs" />
     <Compile Include="Internal\IDocument.cs" />
@@ -82,6 +83,7 @@
     <Compile Include="Internal\Serialization\RelationCollectionSerializer.cs" />
     <Compile Include="Internal\Serialization\RelationSerializer.cs" />
     <Compile Include="Internal\Serialization\SerializationProvider.cs" />
+    <Compile Include="Plugins\TimestampsPlugin.cs" />
     <Compile Include="Validation\DocumentValidationBuilder.cs" />
     <Compile Include="Validation\EmbeddedDocumentUniquenessValidator.cs" />
     <Compile Include="Validation\EmbeddedDocumentValidationBuilder.cs" />

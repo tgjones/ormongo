@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Linq;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Attributes;
 
 namespace Ormongo.Internal
 {

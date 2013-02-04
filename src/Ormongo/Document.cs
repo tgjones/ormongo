@@ -55,6 +55,9 @@ namespace Ormongo
 		[BsonIgnore]
 		public bool IsDestroyed { get; private set; }
 
+		[BsonExtraElements]
+		public BsonDocument CatchAll { get; set; }
+
 		internal static MongoCollection<T> GetCollection()
 		{
 			string collectionName = CollectionUtility.GetCollectionName(typeof(T));
@@ -69,6 +72,7 @@ namespace Ormongo
 		public Document()
 		{
 			Errors = new List<ValidationResult>();
+			CatchAll = new BsonDocument();
 			OnAfterInitialize();
 			ResetChanges();
 		}
