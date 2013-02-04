@@ -34,7 +34,8 @@ namespace Ormongo
 			Observers = new List<IObserver<T>>();
 			Plugins = new List<IPlugin<T>>();
 
-			Validators = new Dictionary<Func<T, object>, IValidationBuilder<T>>();
+			PropertyValidators = new Dictionary<Func<T, object>, IValidationBuilder<T>>();
+			ObjectValidators = new List<Func<T, IEnumerable<ValidationResult>>>();
 		}
 
 		#endregion
@@ -471,13 +472,19 @@ namespace Ormongo
 
 		#region Validation
 
-		private static readonly Dictionary<Func<T, object>, IValidationBuilder<T>> Validators;
+		private static readonly Dictionary<Func<T, object>, IValidationBuilder<T>> PropertyValidators;
+		private static readonly List<Func<T, IEnumerable<ValidationResult>>> ObjectValidators;
 
 		protected static DocumentValidationBuilder<T, TProperty> Validates<TProperty>(Expression<Func<T, TProperty>> propertyExpression)
 		{
 			var validationBuilder = new DocumentValidationBuilder<T, TProperty>(propertyExpression);
-			Validators.Add(x => propertyExpression.Compile()(x), validationBuilder);
+			PropertyValidators.Add(x => propertyExpression.Compile()(x), validationBuilder);
 			return validationBuilder;
+		}
+
+		protected static void Validate(Func<T, IEnumerable<ValidationResult>> validationCallback)
+		{
+			ObjectValidators.Add(validationCallback);
 		}
 
 		[BsonIgnore]
@@ -498,9 +505,11 @@ namespace Ormongo
 
 		IEnumerable<ValidationResult> IValidatableDocument.Validate(SaveType saveType)
 		{
-			Errors.AddRange(ValidationUtility.Validate(Validators, DocumentValidationContext<T>.Create((T) this, saveType)));
+			Errors.AddRange(ValidationUtility.Validate(PropertyValidators, DocumentValidationContext<T>.Create((T) this, saveType)));
 			foreach (IValidatableDocument embeddedDocument in EmbeddedDocumentUtility.GetEmbeddedDocuments(this))
 				Errors.AddRange(embeddedDocument.Validate(saveType));
+			foreach (var objectValidator in ObjectValidators)
+				Errors.AddRange(objectValidator((T) this));
 			return Errors;
 		}
 
@@ -508,7 +517,7 @@ namespace Ormongo
 
 		#region Helpers
 
-		private bool RunCallbacks(Func<bool> before, Action action, Action after)
+		protected bool RunCallbacks(Func<bool> before, Action action, Action after)
 		{
 			bool beforeResult;
 			if (!(beforeResult = before()))
