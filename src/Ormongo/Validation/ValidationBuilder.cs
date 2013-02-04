@@ -29,13 +29,9 @@ namespace Ormongo.Validation
 			return (TValidationBuilder) this;
 		}
 
-		public TValidationBuilder Presence(Func<TDocument, bool> unless = null, SaveType on = SaveType.Any)
+		public TValidationBuilder Inclusion(IEnumerable<TProperty> items, SaveType on = SaveType.Any)
 		{
-			_validators.Add(new PresenceValidator<TDocument>
-			{
-				Unless = unless,
-				On = on
-			});
+			_validators.Add(new InclusionValidator<TDocument, TProperty>(items) { On = on });
 			return (TValidationBuilder) this;
 		}
 
@@ -43,6 +39,16 @@ namespace Ormongo.Validation
 			Func<TDocument, bool> unless = null, SaveType on = SaveType.Any)
 		{
 			_validators.Add(new StringLengthValidator<TDocument>(minimum, maximum)
+			{
+				Unless = unless,
+				On = on
+			});
+			return (TValidationBuilder) this;
+		}
+
+		public TValidationBuilder Presence(Func<TDocument, bool> unless = null, SaveType on = SaveType.Any)
+		{
+			_validators.Add(new PresenceValidator<TDocument>
 			{
 				Unless = unless,
 				On = on

@@ -88,6 +88,7 @@
     <Compile Include="Validation\EmbeddedDocumentUniquenessValidator.cs" />
     <Compile Include="Validation\EmbeddedDocumentValidationBuilder.cs" />
     <Compile Include="Validation\FormatValidator.cs" />
+    <Compile Include="Validation\InclusionValidator.cs" />
     <Compile Include="Validation\IValidationBuilder.cs" />
     <Compile Include="Validation\NumericalityValidator.cs" />
     <Compile Include="Validation\SaveType.cs" />
