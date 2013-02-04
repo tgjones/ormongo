@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 
 namespace Ormongo.Validation
 {
-	public class ValidationBuilder<TDocument, TProperty> : IValidationBuilder<TDocument>
+	public class ValidationBuilder<TValidationBuilder, TDocument, TProperty> : IValidationBuilder<TDocument>
+		where TValidationBuilder : ValidationBuilder<TValidationBuilder, TDocument, TProperty>
 	{
 		private readonly List<ValueValidatorBase<TDocument>> _validators;
 
@@ -23,27 +23,48 @@ namespace Ormongo.Validation
 			_validators = new List<ValueValidatorBase<TDocument>>();
 		}
 
-		public ValidationBuilder<TDocument, TProperty> Presence(SaveType on = SaveType.Any)
+		public TValidationBuilder Format(string regex, SaveType on = SaveType.Any)
 		{
-			_validators.Add(new PresenceValidator<TDocument> { On = on });
-			return this;
-		}
-	}
-
-	public class DocumentValidationBuilder<TDocument, TProperty> : ValidationBuilder<TDocument, TProperty>
-		where TDocument : Document<TDocument>
-	{
-		private readonly Expression<Func<TDocument, TProperty>> _propertyExpression;
-
-		public DocumentValidationBuilder(Expression<Func<TDocument, TProperty>> propertyExpression)
-		{
-			_propertyExpression = propertyExpression;
+			_validators.Add(new FormatValidator<TDocument>(regex) { On = on });
+			return (TValidationBuilder) this;
 		}
 
-		public ValidationBuilder<TDocument, TProperty> Uniqueness(SaveType on = SaveType.Any)
+		public TValidationBuilder Presence(Func<TDocument, bool> unless = null, SaveType on = SaveType.Any)
 		{
-			Validators.Add(new UniquenessValidator<TDocument, TProperty>(_propertyExpression) { On = on });
-			return this;
+			_validators.Add(new PresenceValidator<TDocument>
+			{
+				Unless = unless,
+				On = on
+			});
+			return (TValidationBuilder) this;
+		}
+
+		public TValidationBuilder Length(int minimum = 0, int maximum = int.MaxValue,
+			Func<TDocument, bool> unless = null, SaveType on = SaveType.Any)
+		{
+			_validators.Add(new StringLengthValidator<TDocument>(minimum, maximum)
+			{
+				Unless = unless,
+				On = on
+			});
+			return (TValidationBuilder) this;
+		}
+
+		public TValidationBuilder Numericality(
+			int? greaterThanOrEqualTo = null, int? greaterThan = null,
+			int? lessThanOrEqualTo = null, int? lessThan = null,
+			Func<TDocument, bool> unless = null, SaveType on = SaveType.Any)
+		{
+			_validators.Add(new NumericalityValidator<TDocument>
+			{
+				GreaterThanOrEqualTo = greaterThanOrEqualTo,
+				GreaterThan = greaterThan,
+				LessThanOrEqualTo = lessThanOrEqualTo,
+				LessThan = lessThan,
+				Unless = unless,
+				On = on
+			});
+			return (TValidationBuilder) this;
 		}
 	}
 }

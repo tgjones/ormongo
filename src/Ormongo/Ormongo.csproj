@@ -82,7 +82,12 @@
     <Compile Include="Internal\Serialization\RelationCollectionSerializer.cs" />
     <Compile Include="Internal\Serialization\RelationSerializer.cs" />
     <Compile Include="Internal\Serialization\SerializationProvider.cs" />
+    <Compile Include="Validation\DocumentValidationBuilder.cs" />
+    <Compile Include="Validation\EmbeddedDocumentUniquenessValidator.cs" />
+    <Compile Include="Validation\EmbeddedDocumentValidationBuilder.cs" />
+    <Compile Include="Validation\FormatValidator.cs" />
     <Compile Include="Validation\IValidationBuilder.cs" />
+    <Compile Include="Validation\NumericalityValidator.cs" />
     <Compile Include="Validation\SaveType.cs" />
     <Compile Include="Validation\ValidationBuilder.cs" />
     <Compile Include="Validation\ValidationUtility.cs" />
@@ -99,7 +104,7 @@
     <Compile Include="Validation\ValueValidatorBase.cs" />
     <Compile Include="Validation\PresenceValidator.cs" />
     <Compile Include="Validation\StringLengthValidator.cs" />
-    <Compile Include="Validation\UniquenessValidator.cs" />
+    <Compile Include="Validation\DocumentUniquenessValidator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

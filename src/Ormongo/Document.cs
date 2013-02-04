@@ -469,7 +469,7 @@ namespace Ormongo
 
 		private static readonly Dictionary<Func<T, object>, IValidationBuilder<T>> Validators;
 
-		protected static ValidationBuilder<T, TProperty> Validates<TProperty>(Expression<Func<T, TProperty>> propertyExpression)
+		protected static DocumentValidationBuilder<T, TProperty> Validates<TProperty>(Expression<Func<T, TProperty>> propertyExpression)
 		{
 			var validationBuilder = new DocumentValidationBuilder<T, TProperty>(propertyExpression);
 			Validators.Add(x => propertyExpression.Compile()(x), validationBuilder);
@@ -494,7 +494,7 @@ namespace Ormongo
 
 		IEnumerable<ValidationResult> IValidatableDocument.Validate(SaveType saveType)
 		{
-			Errors.AddRange(ValidationUtility.Validate(this, saveType, Validators));
+			Errors.AddRange(ValidationUtility.Validate(Validators, DocumentValidationContext<T>.Create((T) this, saveType)));
 			foreach (IValidatableDocument embeddedDocument in EmbeddedDocumentUtility.GetEmbeddedDocuments(this))
 				Errors.AddRange(embeddedDocument.Validate(saveType));
 			return Errors;

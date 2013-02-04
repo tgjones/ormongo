@@ -14,7 +14,8 @@ namespace Ormongo.Validation
 			_maximumLength = maximumLength;
 		}
 
-		protected override IEnumerable<ValidationResult> ValidateInternal(object value, DocumentValidationContext<T> validationContext)
+		protected override IEnumerable<ValidationResult> ValidateInternal(object value,
+			DocumentValidationContext<T> validationContext)
 		{
 			var typedValue = value as string;
 			if (string.IsNullOrEmpty(typedValue))

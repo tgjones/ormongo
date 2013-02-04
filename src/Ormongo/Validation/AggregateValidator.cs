@@ -17,7 +17,8 @@ namespace Ormongo.Validation
 			_validators.Add(validator);
 		}
 
-		protected override sealed IEnumerable<ValidationResult> ValidateInternal(object value, DocumentValidationContext<T> validationContext)
+		protected override sealed IEnumerable<ValidationResult> ValidateInternal(object value,
+			DocumentValidationContext<T> validationContext)
 		{
 			var result = new List<ValidationResult>();
 			foreach (var validator in _validators)

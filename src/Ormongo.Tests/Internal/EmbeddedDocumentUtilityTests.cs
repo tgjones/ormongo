@@ -35,5 +35,31 @@ namespace Ormongo.Tests.Internal
 			// Assert.
 			Assert.That(comment.Parent, Is.EqualTo(blogPost));
 		}
+
+		[Test]
+		public void CanGetInverseOfRelationshipForNonCollectionProperties()
+		{
+			// Arrange.
+			var address = new Address();
+
+			// Act.
+			var result = EmbeddedDocumentUtility.GetParentPropertyName<Address, Person>(address);
+
+			// Assert.
+			Assert.That(result, Is.EqualTo("Address"));
+		}
+
+		[Test]
+		public void CanGetInverseOfRelationshipForCollectionProperties()
+		{
+			// Arrange.
+			var comment = new Comment();
+
+			// Act.
+			var result = EmbeddedDocumentUtility.GetParentPropertyName<Comment, BlogPost>(comment);
+
+			// Assert.
+			Assert.That(result, Is.EqualTo("Comments"));
+		}
 	}
 }

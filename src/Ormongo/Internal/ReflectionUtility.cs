@@ -38,6 +38,15 @@ namespace Ormongo.Internal
 			return args.Length == 1  && IsSubclassOfRawGeneric(itemType, args[0]);
 		}
 
+		public static bool IsListOfType(Type itemType, Type typeToCheck)
+		{
+			if (!IsSubclassOfRawGeneric(typeof(List<>), typeToCheck))
+				return false;
+
+			var args = typeToCheck.GetGenericArguments();
+			return args.Length == 1 && itemType == args[0];
+		}
+
 		public static Type GetTypeOfGenericList(Type typeToCheck)
 		{
 			if (!IsSubclassOfRawGeneric(typeof(List<>), typeToCheck))

@@ -11,15 +11,15 @@ using Ormongo.Internal;
 
 namespace Ormongo.Validation
 {
-	public class UniquenessValidator<TDocument, TProperty> : ValueValidatorBase<TDocument>
-		where TDocument : Document<TDocument>
+	public class DocumentUniquenessValidator<TDocument, TProperty> : ValueValidatorBase<TDocument>
+		where TDocument : Document<TDocument> 
 	{
 		private readonly string _propertyName;
 
 		public bool CaseSensitive { get; set; }
 		public Expression<Func<TDocument, object>>[] Scope { get; set; }
 
-		public UniquenessValidator(Expression<Func<TDocument, TProperty>> propertyExpression)
+		public DocumentUniquenessValidator(Expression<Func<TDocument, TProperty>> propertyExpression)
 		{
 			_propertyName = ExpressionUtility.GetPropertyName(propertyExpression);
 			CaseSensitive = true;

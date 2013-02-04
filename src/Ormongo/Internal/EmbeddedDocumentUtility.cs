@@ -7,6 +7,13 @@ namespace Ormongo.Internal
 {
 	public static class EmbeddedDocumentUtility
 	{
+		public static IEnumerable<object> GetEmbeddedCollection(object document, string propertyName)
+		{
+			// TODO: Cache this.
+			var propertyInfo = document.GetType().GetProperty(propertyName);
+			return GetEmbeddedCollection(document, propertyInfo);
+		}
+
 		/// <summary>
 		/// Gets a list of all embedded documents in the specified document.
 		/// </summary>
@@ -14,6 +21,7 @@ namespace Ormongo.Internal
 		/// <returns></returns>
 		public static IEnumerable<object> GetEmbeddedDocuments(object document)
 		{
+			// TODO: Cache this.
 			var properties = document.GetType()
 				.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
@@ -25,16 +33,18 @@ namespace Ormongo.Internal
 			// Embedded documents inside lists.
 			embeddedDocuments = embeddedDocuments.Union(properties
 				.Where(pi => ReflectionUtility.IsListOfRawGeneric(typeof(EmbeddedDocument<,>), pi.PropertyType))
-				.SelectMany(pi =>
-				{
-					var list = pi.GetValue(document, null) as IList;
-					return (list != null)
-						? list.Cast<object>()
-						: new List<object>();
-				}))
+				.SelectMany(pi => GetEmbeddedCollection(document, pi)))
 				.Where(o => o != null);
 
 			return embeddedDocuments;
+		}
+
+		private static IEnumerable<object> GetEmbeddedCollection(object document, PropertyInfo pi)
+		{
+			var list = pi.GetValue(document, null) as IList;
+			return (list != null)
+				? list.Cast<object>()
+				: new List<object>();
 		}
 
 		/// <summary>
@@ -49,6 +59,18 @@ namespace Ormongo.Internal
 				var parentProperty = embeddedDocument.GetType().GetProperty("Parent");
 				parentProperty.SetValue(embeddedDocument, document, null);
 			}
+		}
+
+		public static string GetParentPropertyName<T, TEmbeddedIn>(T embeddedDocument)
+			where T : EmbeddedDocument<T, TEmbeddedIn>
+			where TEmbeddedIn : Document<TEmbeddedIn>
+		{
+			// TODO: Cache this.
+			return typeof(TEmbeddedIn)
+				.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+				.Where(x => x.PropertyType == typeof(T) || ReflectionUtility.IsListOfType(typeof(T), x.PropertyType))
+				.Select(x => x.Name)
+				.FirstOrDefault();
 		}
 	}
 }
