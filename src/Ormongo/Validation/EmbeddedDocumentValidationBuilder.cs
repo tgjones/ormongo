@@ -14,7 +14,7 @@ namespace Ormongo.Validation
 			_propertyExpression = propertyExpression;
 		}
 
-		public EmbeddedDocumentValidationBuilder<TDocument, TEmbeddedIn, TProperty> Uniqueness(bool caseSensitive, SaveType on = SaveType.Any)
+		public EmbeddedDocumentValidationBuilder<TDocument, TEmbeddedIn, TProperty> Uniqueness(SaveType on = SaveType.Any)
 		{
 			Validators.Add(new EmbeddedDocumentUniquenessValidator<TDocument, TEmbeddedIn, TProperty>(_propertyExpression)
 			{

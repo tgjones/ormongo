@@ -8,7 +8,7 @@ namespace Ormongo.Validation
 	{
 		private readonly List<ValueValidatorBase<TDocument>> _validators;
 
-		protected List<ValueValidatorBase<TDocument>> Validators
+		public List<ValueValidatorBase<TDocument>> Validators
 		{
 			get { return _validators; }
 		}

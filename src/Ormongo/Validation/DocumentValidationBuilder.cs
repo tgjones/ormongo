@@ -13,12 +13,17 @@ namespace Ormongo.Validation
 			_propertyExpression = propertyExpression;
 		}
 
-		public DocumentValidationBuilder<TDocument, TProperty> Uniqueness(bool caseSensitive, SaveType on = SaveType.Any)
+		public DocumentValidationBuilder<TDocument, TProperty> Uniqueness(bool caseSensitive = true, 
+			Expression<Func<TDocument, object>>[] scope = null,
+			SaveType on = SaveType.Any,
+			bool allowNull = false)
 		{
 			Validators.Add(new DocumentUniquenessValidator<TDocument, TProperty>(_propertyExpression)
 			{
 				On = on,
-				CaseSensitive = caseSensitive
+				CaseSensitive = caseSensitive,
+				Scope = scope,
+				AllowNull = allowNull
 			});
 			return this;
 		}
