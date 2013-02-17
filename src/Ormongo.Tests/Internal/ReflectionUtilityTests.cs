@@ -14,7 +14,20 @@ namespace Ormongo.Tests.Internal
 			var myList = new List<int>();
 
 			// Act.
-			bool result = ReflectionUtility.IsSubclassOfRawGeneric(typeof (List<>), myList.GetType());
+			bool result = ReflectionUtility.IsSubclassOfRawGeneric(typeof(List<>), myList.GetType());
+
+			// Assert.
+			Assert.That(result, Is.True);
+		}
+
+		[Test]
+		public void CanCheckSubclassOfReferencedDocumentCollection()
+		{
+			// Arrange.
+			var myList = new ReferencedDocumentCollection<BlogPost, Person>(null, null);
+
+			// Act.
+			bool result = ReflectionUtility.IsSubclassOfRawGeneric(typeof(List<>), myList.GetType());
 
 			// Assert.
 			Assert.That(result, Is.True);

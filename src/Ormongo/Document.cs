@@ -322,69 +322,71 @@ namespace Ormongo
 
 		#region Callbacks
 
+		protected static readonly Callbacks<T> Callbacks = new Callbacks<T>();
+
 		private void OnAfterInitialize()
 		{
 			// Not virtual because we call it from constructor.
-			ExecuteObservers(o => o.AfterInitialize((T) this));
+			ExecuteObservers(CallbackType.AfterInitialize, o => o.AfterInitialize((T) this));
 		}
 
 		protected virtual bool OnBeforeSave()
 		{
 			EmbeddedDocumentUtility.UpdateParentReferences(this);
-			return ExecuteCancellableObservers(o => o.BeforeSave((T)this));
+			return ExecuteCancellableObservers(CallbackType.BeforeSave, o => o.BeforeSave((T)this));
 		}
 
 		protected virtual void OnAfterSave()
 		{
 			ResetChanges();
-			ExecuteObservers(o => o.AfterSave((T)this));
+			ExecuteObservers(CallbackType.AfterSave, o => o.AfterSave((T)this));
 		}
 
 		protected virtual bool OnBeforeCreate()
 		{
-			return ExecuteCancellableObservers(o => o.BeforeCreate((T)this));
+			return ExecuteCancellableObservers(CallbackType.BeforeCreate, o => o.BeforeCreate((T)this));
 		}
 
 		protected virtual void OnAfterCreate()
 		{
-			ExecuteObservers(o => o.AfterCreate((T)this));
+			ExecuteObservers(CallbackType.AfterCreate, o => o.AfterCreate((T)this));
 		}
 
 		protected virtual bool OnBeforeUpdate()
 		{
-			return ExecuteCancellableObservers(o => o.BeforeUpdate((T)this));
+			return ExecuteCancellableObservers(CallbackType.BeforeUpdate, o => o.BeforeUpdate((T)this));
 		}
 
 		protected virtual void OnAfterUpdate()
 		{
-			ExecuteObservers(o => o.AfterUpdate((T)this));
+			ExecuteObservers(CallbackType.AfterUpdate, o => o.AfterUpdate((T)this));
 		}
 
 		protected virtual bool OnBeforeDestroy()
 		{
-			return ExecuteCancellableObservers(o => o.BeforeDestroy((T)this));
+			return ExecuteCancellableObservers(CallbackType.BeforeDestroy, o => o.BeforeDestroy((T)this));
 		}
 
 		protected virtual void OnAfterDestroy()
 		{
-			ExecuteObservers(o => o.AfterDestroy((T)this));
+			ExecuteObservers(CallbackType.AfterDestroy, o => o.AfterDestroy((T)this));
 		}
 
 		protected virtual bool OnBeforeValidation()
 		{
-			return ExecuteCancellableObservers(o => o.BeforeValidation((T) this));
+			return ExecuteCancellableObservers(CallbackType.BeforeValidation, o => o.BeforeValidation((T) this));
 		}
 
 		protected virtual void OnAfterValidation()
 		{
-			ExecuteObservers(o => o.AfterValidation((T) this));
+			ExecuteObservers(CallbackType.AfterValidation, o => o.AfterValidation((T) this));
 		}
 
 		protected virtual void OnAfterFind()
 		{
 			EmbeddedDocumentUtility.UpdateParentReferences(this);
 			ResetChanges();
-			ExecuteObservers(o => o.AfterFind((T)this));
+			ExecuteObservers(CallbackType.AfterFind, o => o.AfterFind((T)this));
 		}
 
 		void IDocument.AfterFind()
@@ -392,9 +394,10 @@ namespace Ormongo
 			OnAfterFind();
 		}
 
-		private void ExecuteObservers(Action<IObserver<T>> callback)
+		private void ExecuteObservers(CallbackType callbackType, Action<IObserver<T>> callback)
 		{
-			ExecuteObservers<IObserver<T>>(callback);
+			ExecuteCallbacks(callbackType);
+			ExecuteObservers(callback);
 		}
 
 		protected void ExecuteObservers<TObserver>(Action<TObserver> callback)
@@ -403,14 +406,22 @@ namespace Ormongo
 				callback(observer);
 		}
 
-		private bool ExecuteCancellableObservers(Func<IObserver<T>, bool> callback)
+		private bool ExecuteCancellableObservers(CallbackType callbackType, Func<IObserver<T>, bool> callback)
 		{
-			return ExecuteCancellableObservers<IObserver<T>>(callback);
+			ExecuteCallbacks(callbackType);
+			return ExecuteCancellableObservers(callback);
 		}
 
 		protected bool ExecuteCancellableObservers<TObserver>(Func<TObserver, bool> callback)
 		{
 			return Observers.OfType<TObserver>().All(callback);
+		}
+
+		private void ExecuteCallbacks(CallbackType callbackType)
+		{
+			Callbacks.ExecuteCallbacks(callbackType, (T) this);
+			foreach (IHasCallbacks embeddedDocument in EmbeddedDocumentUtility.GetEmbeddedDocuments(this))
+				embeddedDocument.ExecuteCallbacks(callbackType);
 		}
 
 		#endregion

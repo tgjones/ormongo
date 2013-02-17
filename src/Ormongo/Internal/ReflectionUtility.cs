@@ -34,8 +34,14 @@ namespace Ormongo.Internal
 			if (!IsSubclassOfRawGeneric(typeof(List<>), typeToCheck))
 				return false;
 
-			var args = typeToCheck.GetGenericArguments();
-			return args.Length == 1  && IsSubclassOfRawGeneric(itemType, args[0]);
+			while (typeToCheck != null && typeToCheck != typeof (object))
+			{
+				var args = typeToCheck.GetGenericArguments();
+				if (args.Length == 1 && IsSubclassOfRawGeneric(itemType, args[0]))
+					return true;
+				typeToCheck = typeToCheck.BaseType;
+			}
+			return false;
 		}
 
 		public static bool IsListOfType(Type itemType, Type typeToCheck)
@@ -52,11 +58,15 @@ namespace Ormongo.Internal
 			if (!IsSubclassOfRawGeneric(typeof(List<>), typeToCheck))
 				throw new Exception("Not a generic list");
 
-			var args = typeToCheck.GetGenericArguments();
-			if (args.Length != 1)
-				throw new Exception("Not a generic list");
+			while (typeToCheck != null && typeToCheck != typeof(object))
+			{
+				var args = typeToCheck.GetGenericArguments();
+				if (args.Length == 1)
+					return args[0];
+				typeToCheck = typeToCheck.BaseType;
+			}
 
-			return args[0];
+			throw new Exception("Not a generic list");
 		}
 	}
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -78,9 +79,7 @@ namespace Ormongo.Internal.Proxying
 								.MakeGenericMethod(otherType);
 							var other = findMethod.Invoke(null, new object[] { otherIDs });
 
-							other = typeof(Enumerable).GetMethod("ToList", BindingFlags.Public | BindingFlags.Static)
-								.MakeGenericMethod(otherType)
-								.Invoke(null, new[] { other });
+							other = Activator.CreateInstance(invocation.Method.ReturnType, other);
 
 							var propertySetter = document.GetType().GetProperty(propertyName);
 							propertySetter.SetValue(document, other, null);

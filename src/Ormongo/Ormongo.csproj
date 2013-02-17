@@ -61,16 +61,20 @@
   <ItemGroup>
     <Compile Include="Attachment.cs" />
     <Compile Include="AttachmentDeletingEventArgs.cs" />
+    <Compile Include="Callbacks.cs" />
+    <Compile Include="CallbackType.cs" />
     <Compile Include="ChangeTrackingObject.cs" />
     <Compile Include="DatabaseStatistics.cs" />
     <Compile Include="EmbeddedDocument.cs" />
     <Compile Include="Document.cs" />
+    <Compile Include="EmbeddedDocumentCollection.cs" />
     <Compile Include="EmbeddedDocumentWithID.cs" />
     <Compile Include="Internal\CollectionUtility.cs" />
     <Compile Include="Internal\DocumentUtility.cs" />
     <Compile Include="Internal\EmbeddedDocumentUtility.cs" />
     <Compile Include="Internal\ExtensionMethods.cs" />
     <Compile Include="Internal\IDocument.cs" />
+    <Compile Include="Internal\IHasCallbacks.cs" />
     <Compile Include="Internal\IValidatableDocument.cs" />
     <Compile Include="Internal\Proxying\LazyLoadingInterceptor.cs" />
     <Compile Include="Internal\Proxying\ProxyManager.cs" />
@@ -85,6 +89,8 @@
     <Compile Include="Internal\Serialization\RelationSerializer.cs" />
     <Compile Include="Internal\Serialization\SerializationProvider.cs" />
     <Compile Include="Plugins\TimestampsPlugin.cs" />
+    <Compile Include="ReferencedDocumentCollection.cs" />
+    <Compile Include="RelationExtensions.cs" />
     <Compile Include="Validation\DocumentValidationBuilder.cs" />
     <Compile Include="Validation\EmbeddedDocumentUniquenessValidator.cs" />
     <Compile Include="Validation\EmbeddedDocumentValidationBuilder.cs" />

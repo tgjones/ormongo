@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using MongoDB.Bson.Serialization.Attributes;
 using Ormongo.Internal;
 using Ormongo.Validation;
 
 namespace Ormongo
 {
-	public abstract class EmbeddedDocument<T, TEmbeddedIn> : IValidatableDocument
+	public abstract class EmbeddedDocument<T, TEmbeddedIn> : IValidatableDocument, IHasCallbacks
 		where T : EmbeddedDocument<T, TEmbeddedIn>
 		where TEmbeddedIn : Document<TEmbeddedIn>
 	{
@@ -34,6 +35,11 @@ namespace Ormongo
 			return validationBuilder;
 		}
 
+		public bool IsValid
+		{
+			get { return !((IValidatableDocument) this).Validate(SaveType.Any).Any(); }
+		}
+
 		IEnumerable<ValidationResult> IValidatableDocument.Validate(SaveType saveType)
 		{
 			var parentPropertyName = EmbeddedDocumentUtility.GetParentPropertyName<T, TEmbeddedIn>((T) this);
@@ -42,5 +48,16 @@ namespace Ormongo
 		}
 
 		#endregion
+
+		#region Callbacks
+
+		protected static readonly Callbacks<T> Callbacks = new Callbacks<T>();
+
+		#endregion
+
+		void IHasCallbacks.ExecuteCallbacks(CallbackType callbackType)
+		{
+			Callbacks.ExecuteCallbacks(callbackType, (T) this);
+		}
 	}
 }

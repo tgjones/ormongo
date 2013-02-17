@@ -8,7 +8,7 @@ namespace Ormongo.Validation
 		protected override IEnumerable<ValidationResult> ValidateInternal(object value, 
 			DocumentValidationContext<T> validationContext)
 		{
-			if (value == null || (value is string && string.IsNullOrEmpty((string) value)))
+			if (value == null || (value is string && string.IsNullOrEmpty(((string) value).Trim())))
 				yield return new ValidationResult(validationContext.DisplayName + " is required");
 		}
 	}
