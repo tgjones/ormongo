@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using MongoDB.Bson.Serialization;
@@ -14,12 +15,14 @@ namespace Ormongo
 		public static int ServerPort { get; set; }
 		public static string Database { get; set; }
 		public static bool SafeMode { get; set; }
+		public static TimeSpan ConnectTimeout { get; set; }
 
 		public static bool AutoCreateIndexes { get; set; }
 
 		static OrmongoConfiguration()
 		{
 			SafeMode = true;
+			ConnectTimeout = MongoDefaults.ConnectTimeout;
 		}
 
 		internal static void Initialize()
@@ -41,6 +44,7 @@ namespace Ormongo
 			var connectionStringBuilder = new MongoConnectionStringBuilder
 			{
 				Server = serverAddress,
+				ConnectTimeout = ConnectTimeout,
 				SafeMode = (SafeMode)
 					? MongoDB.Driver.SafeMode.True
 					: MongoDB.Driver.SafeMode.False
