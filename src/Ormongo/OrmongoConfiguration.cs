@@ -16,6 +16,8 @@ namespace Ormongo
 		public static string Database { get; set; }
 		public static bool SafeMode { get; set; }
 		public static TimeSpan ConnectTimeout { get; set; }
+		public static TimeSpan SocketTimeout { get; set; }
+		public static TimeSpan WaitQueueTimeout { get; set; }
 
 		public static bool AutoCreateIndexes { get; set; }
 
@@ -23,6 +25,8 @@ namespace Ormongo
 		{
 			SafeMode = true;
 			ConnectTimeout = MongoDefaults.ConnectTimeout;
+			SocketTimeout = MongoDefaults.SocketTimeout;
+			WaitQueueTimeout = MongoDefaults.WaitQueueTimeout;
 		}
 
 		internal static void Initialize()
@@ -45,6 +49,8 @@ namespace Ormongo
 			{
 				Server = serverAddress,
 				ConnectTimeout = ConnectTimeout,
+				SocketTimeout = SocketTimeout,
+				WaitQueueTimeout = WaitQueueTimeout,
 				SafeMode = (SafeMode)
 					? MongoDB.Driver.SafeMode.True
 					: MongoDB.Driver.SafeMode.False
