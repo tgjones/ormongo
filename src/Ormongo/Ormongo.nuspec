@@ -11,6 +11,6 @@
 		<tags>.net40 Mongo ORM ActiveRecord</tags>
 	</metadata>
 	<files>
-		<file src="bin\Release\FluentMongo.dll" target="lib\net40-Client" />
+		<file src="src\Ormongo\bin\Release\FluentMongo.dll" target="lib\net40-Client" />
 	</files>
 </package>
