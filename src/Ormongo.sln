@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ormongo", "Ormongo\Ormongo.csproj", "{6C87182D-D784-43B0-8F31-98D43A02FDE7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ormongo.Tests", "Ormongo.Tests\Ormongo.Tests.csproj", "{A8E1A966-4B91-42BB-8C6B-C84A27DD3682}"
